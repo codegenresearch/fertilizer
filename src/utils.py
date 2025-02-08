@@ -1,1 +1,1 @@
-def flatten(arg):\n    if not isinstance(arg, list):\n        return [arg]\n    return [x for sub in arg for x in flatten(sub)]\n\ndef url_join(*args: str) -> str:\n    path_parts = [part.strip('/') for part in args]\n    return '/'.join(filter(None, path_parts))
+def flatten(arg):\n    if not isinstance(arg, list):\n        return [arg]\n    return [x for sub in arg for x in flatten(sub)]\n\ndef url_join(*args):\n    path_parts = [part.strip('/') for part in args]\n    return '/'.join(path_parts)
