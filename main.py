@@ -5,7 +5,6 @@ from src.api import RedAPI, OpsAPI
 from src.args import parse_args
 from src.config import Config
 from src.scanner import scan_torrent_directory, scan_torrent_file
-
 from src.webserver import run_webserver
 
 
@@ -15,7 +14,7 @@ def cli_entrypoint(args):
         red_api, ops_api = __verify_api_keys(config)
 
         if args.server:
-            port = config.get('server_port', 9713)
+            port = config.server_port
             run_webserver(args.input_directory, args.output_directory, red_api, ops_api, port=port)
         elif args.input_file:
             print(scan_torrent_file(args.input_file, args.output_directory, red_api, ops_api))
@@ -27,16 +26,8 @@ def cli_entrypoint(args):
 
 
 def __verify_api_keys(config):
-    red_key = config.get('red_key', '')
-    ops_key = config.get('ops_key', '')
-
-    if not red_key:
-        raise KeyError('red_key')
-    if not ops_key:
-        raise KeyError('ops_key')
-
-    red_api = RedAPI(red_key)
-    ops_api = OpsAPI(ops_key)
+    red_api = RedAPI(config.red_key)
+    ops_api = OpsAPI(config.ops_key)
 
     # This will perform a lookup with the API and raise if there was a failure.
     # Also caches the announce URL for future use which is a nice bonus
