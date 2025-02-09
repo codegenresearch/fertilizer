@@ -25,9 +25,7 @@ class Deluge(TorrentClient):
         self._label_plugin_enabled = False
 
     def setup(self):
-        self.__authenticate()
-        self._label_plugin_enabled = self.__is_label_plugin_enabled()
-        return True
+        return self.__authenticate()
 
     def get_torrent_info(self, infohash):
         infohash = infohash.lower()
@@ -44,7 +42,7 @@ class Deluge(TorrentClient):
         ]
 
         try:
-            response = self.__request_with_reauth("web.update_ui", params)
+            response = self.__wrap_request("web.update_ui", params)
         except TorrentClientError as request_error:
             raise TorrentClientError(f"Failed to retrieve torrent info for {infohash}: {request_error}") from request_error
 
@@ -89,7 +87,7 @@ class Deluge(TorrentClient):
         ]
 
         try:
-            new_torrent_infohash = self.__request_with_reauth("core.add_torrent_file", params)
+            new_torrent_infohash = self.__wrap_request("core.add_torrent_file", params)
         except TorrentClientError as add_error:
             raise TorrentClientError(f"Failed to add torrent file: {add_error}") from add_error
 
@@ -111,6 +109,7 @@ class Deluge(TorrentClient):
             raise TorrentClientAuthenticationError("Failed to authenticate with Deluge")
 
         self.__request("web.connected")
+        return True
 
     def __is_label_plugin_enabled(self):
         response = self.__request("core.get_enabled_plugins")
@@ -169,17 +168,19 @@ class Deluge(TorrentClient):
         if "error" in json_response and json_response["error"]:
             error_code = json_response["error"].get("code", 500)
             error_message = ERROR_CODES.get(error_code, "Unknown error")
+            if error_code == 1:
+                raise TorrentClientAuthenticationError(f"Deluge method {method} returned an error: {error_message}")
             raise TorrentClientError(f"Deluge method {method} returned an error: {error_message}")
 
         return json_response["result"]
 
-    def __request_with_reauth(self, method, params=[]):
+    def __wrap_request(self, method, params=[]):
         try:
             return self.__request(method, params)
+        except TorrentClientAuthenticationError as auth_error:
+            self.__authenticate()
+            return self.__request(method, params)
         except TorrentClientError as request_error:
-            if "Authentication failed" in str(request_error):
-                self.__authenticate()
-                return self.__request(method, params)
             raise request_error
 
     def __handle_response_headers(self, headers):
