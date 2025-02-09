@@ -64,7 +64,7 @@ def calculate_infohash(torrent_data: dict) -> str:
         raise TorrentDecodingError("Torrent data does not contain 'info' key")
 
 
-def recalculate_hash_for_new_source(torrent_data: dict, new_source: (bytes | str)) -> str:
+def recalculate_hash_for_new_source(torrent_data: dict, new_source: bytes | str) -> str:
     torrent_data = copy.deepcopy(torrent_data)
     torrent_data[b"info"][b"source"] = new_source
 
@@ -76,10 +76,8 @@ def get_bencoded_data(filename: str) -> dict:
         with open(filename, "rb") as f:
             data = bencoder.decode(f.read())
         return data
-    except FileNotFoundError:
-        raise TorrentDecodingError(f"File not found: {filename}")
-    except Exception as e:
-        raise TorrentDecodingError(f"Error decoding torrent file: {e}")
+    except Exception:
+        return None
 
 
 def save_bencoded_data(filepath: str, torrent_data: dict) -> str:
