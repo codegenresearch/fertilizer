@@ -8,7 +8,7 @@ from .helpers import get_torrent_path, SetupTeardown
 from src.trackers import RedTracker, OpsTracker
 from src.parser import get_bencoded_data
 from src.errors import TorrentAlreadyExistsError, TorrentDecodingError, UnknownTrackerError, TorrentNotFoundError
-from src.torrent import generate_new_torrent_from_file, generate_torrent_output_filepath
+from src.torrent import generate_new_torrent_from_file
 
 
 class TestGenerateNewTorrentFromFile(SetupTeardown):
@@ -109,7 +109,7 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
         assert str(excinfo.value) == "Torrent already exists in output directory as bar"
 
     def test_raises_error_if_torrent_already_exists(self, red_api, ops_api):
-        filepath = generate_torrent_output_filepath(self.TORRENT_SUCCESS_RESPONSE, OpsTracker(), "/tmp", "OPS")
+        filepath = "/tmp/OPS/foo.torrent"
 
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, "w") as f:
@@ -148,7 +148,7 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
 
         assert str(excinfo.value) == "An unknown error occurred in the API response from OPS"
 
-    def test_handles_alternate_sources(self, red_api, ops_api):
+    def test_works_with_alternate_sources_for_creation(self, red_api, ops_api):
         with requests_mock.Mocker() as m:
             m.get(re.compile("action=torrent"), json=self.TORRENT_SUCCESS_RESPONSE)
             m.get(re.compile("action=index"), json=self.ANNOUNCE_SUCCESS_RESPONSE)
@@ -165,7 +165,7 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
 
             os.remove(filepath)
 
-    def test_handles_blank_sources(self, red_api, ops_api):
+    def test_works_with_blank_sources_for_creation(self, red_api, ops_api):
         with requests_mock.Mocker() as m:
             m.get(re.compile("action=torrent"), json=self.TORRENT_SUCCESS_RESPONSE)
             m.get(re.compile("action=index"), json=self.ANNOUNCE_SUCCESS_RESPONSE)
@@ -187,12 +187,14 @@ class TestGenerateTorrentOutputFilepath(SetupTeardown):
     API_RESPONSE = {"response": {"torrent": {"filePath": "foo"}}}
 
     def test_constructs_a_path_from_response_and_source(self):
-        filepath = generate_torrent_output_filepath(self.API_RESPONSE, OpsTracker(), "/tmp", "OPS")
+        filepath = "/tmp/OPS/foo.torrent"
 
-        assert filepath == "/tmp/OPS/foo.torrent"
+        result = generate_torrent_output_filepath(self.API_RESPONSE, OpsTracker(), "/tmp", "OPS")
+
+        assert result == filepath
 
     def test_raises_error_if_file_exists(self):
-        filepath = generate_torrent_output_filepath(self.API_RESPONSE, OpsTracker(), "/tmp", "OPS")
+        filepath = "/tmp/OPS/foo.torrent"
 
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, "w") as f:
