@@ -57,7 +57,7 @@ class TestSetup(SetupTeardown):
       response = deluge_client.setup()
 
       assert response
-      assert deluge_client._deluge_cookie is not None
+      assert deluge_client._deluge_cookie == "supersecret"
 
   def test_raises_exception_on_failed_auth(self, api_url, deluge_client):
     with requests_mock.Mocker() as m:
