@@ -98,7 +98,7 @@ class Deluge(TorrentClient):
 
         auth_response = self.__request("auth.login", [password])
         if auth_response is False:
-            raise TorrentClientAuthenticationError("Failed to authenticate with Deluge")
+            raise TorrentClientError("Reached Deluge RPC endpoint but failed to authenticate")
 
         return self.__request("web.connected", [])
 
@@ -160,7 +160,7 @@ class Deluge(TorrentClient):
             error_code = json_response["error"].get("code", 500)
             error_message = ERROR_CODES.get(error_code, "Unknown error")
             if error_code == 1:
-                raise TorrentClientAuthenticationError(f"Failed to authenticate with Deluge")
+                raise TorrentClientError(f"Failed to authenticate with Deluge: {error_message}")
             raise TorrentClientError(f"Deluge method {method} returned an error: {error_message}")
 
         return json_response["result"]
