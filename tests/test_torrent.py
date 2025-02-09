@@ -3,7 +3,7 @@ import re
 import pytest
 import requests_mock
 
-from .helpers import get_torrent_path, SetupTeardown, copy_and_mkdir
+from .helpers import get_torrent_path, SetupTeardown
 
 from src.trackers import RedTracker
 from src.parser import get_bencoded_data
@@ -163,16 +163,22 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
     assert previously_generated
 
   def test_returns_appropriately_if_torrent_already_exists(self, red_api, ops_api):
-    torrent_path = get_torrent_path("red_source")
-    copy_and_mkdir(torrent_path, "/tmp/OPS/foo [OPS].torrent")
+    # TODO: update to use copy_and_mkdir
+    filepath = "/tmp/OPS/foo [OPS].torrent"
+
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    with open(filepath, "w") as f:
+      f.write("")
 
     with requests_mock.Mocker() as m:
       m.get(re.compile("action=torrent"), json=self.TORRENT_SUCCESS_RESPONSE)
       m.get(re.compile("action=index"), json=self.ANNOUNCE_SUCCESS_RESPONSE)
 
+      torrent_path = get_torrent_path("red_source")
       _, _, previously_generated = generate_new_torrent_from_file(torrent_path, "/tmp", red_api, ops_api)
 
     assert previously_generated
+    os.remove(filepath)
 
   def test_raises_error_if_api_response_error(self, red_api, ops_api):
     with pytest.raises(TorrentNotFoundError) as excinfo:
@@ -196,9 +202,13 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
 
     assert str(excinfo.value) == "An unknown error occurred in the API response from OPS"
 
-  def test_raises_error_if_torrent_has_no_info(self, red_api, ops_api):
+  def test_raises_specific_exception_for_missing_info_key(self, red_api, ops_api):
     with pytest.raises(TorrentDecodingError) as excinfo:
-      torrent_path = get_torrent_path("no_info")
-      generate_new_torrent_from_file(torrent_path, "/tmp", red_api, ops_api)
+      with requests_mock.Mocker() as m:
+        m.get(re.compile("action=torrent"), json=self.TORRENT_MISSING_INFO_KEY_RESPONSE)
+        m.get(re.compile("action=index"), json=self.ANNOUNCE_SUCCESS_RESPONSE)
 
-    assert str(excinfo.value) == "Error decoding torrent file"
+        torrent_path = get_torrent_path("red_source")
+        generate_new_torrent_from_file(torrent_path, "/tmp", red_api, ops_api)
+
+    assert str(excinfo.value) == "Torrent data does not contain 'info' key"
