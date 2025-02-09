@@ -46,6 +46,7 @@ def generate_new_torrent_from_file(
   new_torrent_data = copy.deepcopy(source_torrent_data)
   new_tracker = source_tracker.reciprocal_tracker()
   new_tracker_api = __get_reciprocal_tracker_api(new_tracker, red_api, ops_api)
+  stored_api_response = None
 
   for new_source in new_tracker.source_flags_for_creation():
     new_hash = recalculate_hash_for_new_source(source_torrent_data, new_source)
@@ -82,6 +83,10 @@ def generate_new_torrent_from_file(
     else:
       raise Exception(f"An unknown error occurred in the API response from {new_tracker.site_shortname()}")
 
+  # If no successful response was found, raise an error
+  if stored_api_response and stored_api_response["error"] in ("bad hash parameter", "bad parameters"):
+    raise TorrentNotFoundError(f"Torrent could not be found on {new_tracker.site_shortname()}")
+
 
 def __generate_torrent_output_filepath(api_response: dict, new_source: str, output_directory: str, new_tracker: RedTracker | OpsTracker) -> str:
   """
@@ -100,7 +105,7 @@ def __generate_torrent_output_filepath(api_response: dict, new_source: str, outp
 
   filepath_from_api_response = unescape(api_response["response"]["torrent"]["filePath"])
   filename = f"{filepath_from_api_response} [{new_source}].torrent"
-  torrent_filepath = os.path.join(output_directory, new_tracker.site_shortname().lower(), filename)
+  torrent_filepath = os.path.join(output_directory, new_tracker.site_shortname().upper(), filename)
 
   if os.path.isfile(torrent_filepath):
     raise TorrentAlreadyExistsError(f"Torrent file already exists at {torrent_filepath}")
@@ -142,3 +147,30 @@ def __get_bencoded_data_and_tracker(torrent_path):
 
 def __get_reciprocal_tracker_api(new_tracker, red_api, ops_api):
   return red_api if new_tracker == RedTracker else ops_api
+
+
+### Additional Changes to Tracker Classes
+
+To address the `AttributeError` related to `blank_source_flags_for_creation()`, you need to define this method in both `RedTracker` and `OpsTracker` classes. Here is an example of how you might implement these methods:
+
+
+# In trackers.py
+
+class RedTracker:
+    @classmethod
+    def blank_source_flags_for_creation(cls):
+        # Define the blank source flags for RED tracker
+        return [b""]
+
+    # Other methods...
+
+class OpsTracker:
+    @classmethod
+    def blank_source_flags_for_creation(cls):
+        # Define the blank source flags for OPS tracker
+        return [b""]
+
+    # Other methods...
+
+
+Make sure to adjust the `blank_source_flags_for_creation` methods to return the appropriate flags for your application's logic.
