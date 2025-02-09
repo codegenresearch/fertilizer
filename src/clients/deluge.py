@@ -10,6 +10,14 @@ from requests.structures import CaseInsensitiveDict
 
 
 class Deluge(TorrentClient):
+    ERROR_CODES = {
+        1: "Authentication failed",
+        2: "Session expired",
+        3: "Method not found",
+        4: "Invalid parameters",
+        5: "Internal error",
+    }
+
     def __init__(self, rpc_url):
         super().__init__()
         self._rpc_url = rpc_url
@@ -18,15 +26,9 @@ class Deluge(TorrentClient):
         self._label_plugin_enabled = False
 
     def setup(self):
-        try:
-            connection_response = self.__authenticate()
-            self._label_plugin_enabled = self.__is_label_plugin_enabled()
-        except TorrentClientAuthenticationError as auth_error:
-            raise TorrentClientAuthenticationError(f"Authentication failed during setup: {auth_error}")
-        except TorrentClientError as client_error:
-            raise TorrentClientError(f"Setup failed: {client_error}")
-
-        return connection_response
+        self.__authenticate()
+        self._label_plugin_enabled = self.__is_label_plugin_enabled()
+        return True
 
     def get_torrent_info(self, infohash):
         infohash = infohash.lower()
@@ -42,13 +44,7 @@ class Deluge(TorrentClient):
             {"hash": infohash},
         ]
 
-        try:
-            response = self.__request("web.update_ui", params)
-        except TorrentClientAuthenticationError as auth_error:
-            raise TorrentClientAuthenticationError(f"Authentication failed while getting torrent info: {auth_error}")
-        except TorrentClientError as client_error:
-            raise TorrentClientError(f"Failed to get torrent info: {client_error}")
-
+        response = self.__wrap_request("web.update_ui", params)
         if "torrents" in response:
             torrent = response["torrents"].get(infohash)
 
@@ -71,12 +67,7 @@ class Deluge(TorrentClient):
         }
 
     def inject_torrent(self, source_torrent_infohash, new_torrent_filepath, save_path_override=None):
-        try:
-            source_torrent_info = self.get_torrent_info(source_torrent_infohash)
-        except TorrentClientAuthenticationError as auth_error:
-            raise TorrentClientAuthenticationError(f"Authentication failed while injecting torrent: {auth_error}")
-        except TorrentClientError as client_error:
-            raise TorrentClientError(f"Failed to get source torrent info: {client_error}")
+        source_torrent_info = self.get_torrent_info(source_torrent_infohash)
 
         if not source_torrent_info["complete"]:
             raise TorrentClientError("Cannot inject a torrent that is not complete")
@@ -91,14 +82,9 @@ class Deluge(TorrentClient):
             },
         ]
 
-        try:
-            new_torrent_infohash = self.__request("core.add_torrent_file", params)
-            newtorrent_label = self.__determine_label(source_torrent_info)
-            self.__set_label(new_torrent_infohash, newtorrent_label)
-        except TorrentClientAuthenticationError as auth_error:
-            raise TorrentClientAuthenticationError(f"Authentication failed while injecting torrent: {auth_error}")
-        except TorrentClientError as client_error:
-            raise TorrentClientError(f"Failed to inject torrent: {client_error}")
+        new_torrent_infohash = self.__wrap_request("core.add_torrent_file", params)
+        newtorrent_label = self.__determine_label(source_torrent_info)
+        self.__set_label(new_torrent_infohash, newtorrent_label)
 
         return new_torrent_infohash
 
@@ -107,39 +93,14 @@ class Deluge(TorrentClient):
         if not password:
             raise Exception("You need to define a password in the Deluge RPC URL. (e.g. http://:<PASSWORD>@localhost:8112)")
 
-        try:
-            auth_response = self.__request("auth.login", [password])
-        except HTTPError as http_error:
-            if http_error.response.status_code == 401:
-                raise TorrentClientAuthenticationError("Authentication failed: Incorrect password")
-            raise TorrentClientAuthenticationError(f"Authentication failed with HTTP error: {http_error}")
-        except Timeout:
-            raise TorrentClientAuthenticationError("Authentication request timed out")
-        except RequestException as network_error:
-            raise TorrentClientAuthenticationError(f"Network error during authentication: {network_error}")
-
-        if not auth_response:
+        response = self.__request("auth.login", [password])
+        if not response:
             raise TorrentClientAuthenticationError("Reached Deluge RPC endpoint but failed to authenticate")
 
-        try:
-            return self.__request("web.connected")
-        except HTTPError as http_error:
-            if http_error.response.status_code == 401:
-                raise TorrentClientAuthenticationError("Authentication failed: Session expired")
-            raise TorrentClientAuthenticationError(f"Authentication failed with HTTP error: {http_error}")
-        except Timeout:
-            raise TorrentClientAuthenticationError("Connection check request timed out")
-        except RequestException as network_error:
-            raise TorrentClientAuthenticationError(f"Network error during connection check: {network_error}")
+        self.__request("web.connected")
 
     def __is_label_plugin_enabled(self):
-        try:
-            response = self.__request("core.get_enabled_plugins")
-        except TorrentClientAuthenticationError as auth_error:
-            raise TorrentClientAuthenticationError(f"Authentication failed while checking label plugin: {auth_error}")
-        except TorrentClientError as client_error:
-            raise TorrentClientError(f"Failed to check label plugin: {client_error}")
-
+        response = self.__request("core.get_enabled_plugins")
         return "Label" in response
 
     def __determine_label(self, torrent_info):
@@ -154,27 +115,18 @@ class Deluge(TorrentClient):
         if not self._label_plugin_enabled:
             return
 
-        try:
-            current_labels = self.__request("label.get_labels")
-        except TorrentClientAuthenticationError as auth_error:
-            raise TorrentClientAuthenticationError(f"Authentication failed while setting label: {auth_error}")
-        except TorrentClientError as client_error:
-            raise TorrentClientError(f"Failed to get labels: {client_error}")
-
+        current_labels = self.__request("label.get_labels")
         if label not in current_labels:
-            try:
-                self.__request("label.add", [label])
-            except TorrentClientAuthenticationError as auth_error:
-                raise TorrentClientAuthenticationError(f"Authentication failed while adding label: {auth_error}")
-            except TorrentClientError as client_error:
-                raise TorrentClientError(f"Failed to add label: {client_error}")
+            self.__request("label.add", [label])
 
+        self.__request("label.set_torrent", [infohash, label])
+
+    def __wrap_request(self, method, params=[]):
         try:
-            return self.__request("label.set_torrent", [infohash, label])
-        except TorrentClientAuthenticationError as auth_error:
-            raise TorrentClientAuthenticationError(f"Authentication failed while setting label: {auth_error}")
-        except TorrentClientError as client_error:
-            raise TorrentClientError(f"Failed to set label: {client_error}")
+            return self.__request(method, params)
+        except TorrentClientAuthenticationError:
+            self.__authenticate()
+            return self.__request(method, params)
 
     def __request(self, method, params=[]):
         href, _, _ = self._extract_credentials_from_url(self._rpc_url)
@@ -213,7 +165,11 @@ class Deluge(TorrentClient):
         self.__handle_response_headers(response.headers)
 
         if "error" in json_response and json_response["error"]:
-            raise TorrentClientError(f"Deluge method {method} returned an error: {json_response['error']}")
+            error_code = json_response["error"].get("code", 5)
+            error_message = self.ERROR_CODES.get(error_code, "Unknown error")
+            if error_code == 2:
+                raise TorrentClientAuthenticationError(f"Deluge method {method} returned an error: {error_message}")
+            raise TorrentClientError(f"Deluge method {method} returned an error: {error_message}")
 
         return json_response["result"]
 
