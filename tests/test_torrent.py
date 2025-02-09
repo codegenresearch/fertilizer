@@ -5,10 +5,10 @@ import requests_mock
 
 from .helpers import get_torrent_path, SetupTeardown
 
-from src.trackers import RedTracker, OpsTracker
+from src.trackers import RedTracker
 from src.parser import get_bencoded_data
 from src.errors import TorrentAlreadyExistsError, TorrentDecodingError, UnknownTrackerError, TorrentNotFoundError
-from src.torrent import generate_new_torrent_from_file, _generate_torrent_output_filepath
+from src.torrent import generate_new_torrent_from_file, generate_torrent_output_filepath
 
 
 class TestGenerateNewTorrentFromFile(SetupTeardown):
@@ -109,7 +109,7 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
         assert str(excinfo.value) == "Torrent already exists in output directory as bar"
 
     def test_raises_error_if_torrent_already_exists(self, red_api, ops_api):
-        filepath = _generate_torrent_output_filepath(self.TORRENT_SUCCESS_RESPONSE, OpsTracker(), "/tmp", "OPS")
+        filepath = generate_torrent_output_filepath(self.TORRENT_SUCCESS_RESPONSE, RedTracker(), "/tmp", "OPS")
 
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, "w") as f:
@@ -187,19 +187,19 @@ class TestGenerateTorrentOutputFilepath(SetupTeardown):
     API_RESPONSE = {"response": {"torrent": {"filePath": "foo"}}}
 
     def test_constructs_a_path_from_response_and_source(self):
-        filepath = _generate_torrent_output_filepath(self.API_RESPONSE, OpsTracker(), "/tmp", "OPS")
+        filepath = generate_torrent_output_filepath(self.API_RESPONSE, RedTracker(), "/tmp", "OPS")
 
         assert filepath == "/tmp/OPS/foo [OPS].torrent"
 
     def test_raises_error_if_file_exists(self):
-        filepath = _generate_torrent_output_filepath(self.API_RESPONSE, OpsTracker(), "/tmp", "OPS")
+        filepath = generate_torrent_output_filepath(self.API_RESPONSE, RedTracker(), "/tmp", "OPS")
 
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, "w") as f:
             f.write("")
 
         with pytest.raises(TorrentAlreadyExistsError) as excinfo:
-            _generate_torrent_output_filepath(self.API_RESPONSE, OpsTracker(), "/tmp", "OPS")
+            generate_torrent_output_filepath(self.API_RESPONSE, RedTracker(), "/tmp", "OPS")
 
         assert str(excinfo.value) == f"Torrent file already exists at {filepath}"
         os.remove(filepath)
