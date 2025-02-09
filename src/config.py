@@ -31,7 +31,7 @@ class Config:
 
     @property
     def server_port(self) -> str:
-        return self.__get_key("server_port", default="9713")
+        return self.__get_key("port", default="9713")
 
     def __get_key(self, key, default=None):
         try:
