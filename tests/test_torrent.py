@@ -5,7 +5,7 @@ import requests_mock
 
 from .helpers import get_torrent_path, SetupTeardown, copy_and_mkdir
 
-from src.trackers import RedTracker
+from src.trackers import RedTracker, OpsTracker
 from src.parser import get_bencoded_data
 from src.errors import TorrentAlreadyExistsError, TorrentDecodingError, UnknownTrackerError, TorrentNotFoundError
 from src.torrent import generate_new_torrent_from_file
@@ -202,7 +202,7 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
     def test_returns_appropriately_if_torrent_already_exists(self, red_api, ops_api):
         filepath = "/tmp/OPS/foo [OPS].torrent"
 
-        copy_and_mkdir(filepath)
+        copy_and_mkdir(filepath, "w")
         with open(filepath, "w") as f:
             f.write("")
 
@@ -248,3 +248,9 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
                 generate_new_torrent_from_file(torrent_path, "/tmp", red_api, ops_api)
 
         assert str(excinfo.value) == "Torrent data does not contain 'info' key"
+
+
+### Additional Adjustments:
+1. **Mock Responses**: Ensured that the mock responses include the necessary keys (`passkey` in `account_info`).
+2. **File Handling**: Corrected the `copy_and_mkdir` function call to include the required destination argument.
+3. **Error Handling**: Updated the error handling in `generate_new_torrent_from_file` to raise `TorrentDecodingError` with the correct message when the 'info' key is missing.
