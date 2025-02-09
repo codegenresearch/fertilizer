@@ -154,8 +154,8 @@ def __get_reciprocal_tracker_api(new_tracker, red_api, ops_api):
 
 To address the `AttributeError` related to `blank_source_flags_for_creation()`, you need to define this method in both `RedTracker` and `OpsTracker` classes. Here is an example of how you might implement these methods:
 
+#### In `trackers.py`
 
-# In trackers.py
 
 class RedTracker:
     @classmethod
