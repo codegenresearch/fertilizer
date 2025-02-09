@@ -15,16 +15,16 @@ def cli_entrypoint(args):
 
         if args.server:
             run_webserver(
-                config.input_directory,
-                config.output_directory,
+                args.input_directory,
+                args.output_directory,
                 red_api,
                 ops_api,
-                port=int(config.server_port or os.environ.get("PORT", 9713))
+                port=int(config.server_port)
             )
         elif args.input_file:
-            print(scan_torrent_file(args.input_file, config.output_directory, red_api, ops_api))
+            print(scan_torrent_file(args.input_file, args.output_directory, red_api, ops_api))
         elif args.input_directory:
-            print(scan_torrent_directory(args.input_directory, config.output_directory, red_api, ops_api))
+            print(scan_torrent_directory(args.input_directory, args.output_directory, red_api, ops_api))
     except Exception as e:
         print(f"{Fore.RED}{str(e)}{Fore.RESET}")
         exit(1)
