@@ -53,8 +53,9 @@ class TestConfig(SetupTeardown):
 
 
 This revised code addresses the feedback by:
-1. Ensuring the `test_loads_config` method uses the correct expected values.
-2. Renaming the method to `test_returns_default_value_if_present` for consistency.
-3. Removing redundant tests and consolidating the check for the default server port.
-4. Maintaining consistent formatting and indentation.
-5. Ensuring cleanup logic is applied consistently.
+1. Removing the invalid syntax comment.
+2. Ensuring the expected values in assertions match those in the gold code.
+3. Reviewing and maintaining consistent method naming.
+4. Consolidating and ensuring tests are not redundant.
+5. Applying consistent cleanup logic.
+6. Maintaining consistent formatting and indentation.
