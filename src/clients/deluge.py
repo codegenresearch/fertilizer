@@ -26,9 +26,9 @@ class Deluge(TorrentClient):
         self._label_plugin_enabled = False
 
     def setup(self):
-        self.__authenticate()
+        auth_response = self.__authenticate()
         self._label_plugin_enabled = self.__is_label_plugin_enabled()
-        return True
+        return auth_response
 
     def get_torrent_info(self, infohash):
         infohash = infohash.lower()
@@ -44,7 +44,7 @@ class Deluge(TorrentClient):
             {"hash": infohash},
         ]
 
-        response = self.__wrap_request("web.update_ui", params)
+        response = self.__request("web.update_ui", params)
         if "torrents" in response:
             torrent = response["torrents"].get(infohash)
 
@@ -82,7 +82,7 @@ class Deluge(TorrentClient):
             },
         ]
 
-        new_torrent_infohash = self.__wrap_request("core.add_torrent_file", params)
+        new_torrent_infohash = self.__request("core.add_torrent_file", params)
         newtorrent_label = self.__determine_label(source_torrent_info)
         self.__set_label(new_torrent_infohash, newtorrent_label)
 
@@ -94,10 +94,11 @@ class Deluge(TorrentClient):
             raise Exception("You need to define a password in the Deluge RPC URL. (e.g. http://:<PASSWORD>@localhost:8112)")
 
         response = self.__request("auth.login", [password])
-        if not response:
+        if not response or not response.get("result"):
             raise TorrentClientAuthenticationError("Failed to authenticate with Deluge")
 
         self.__request("web.connected")
+        return True
 
     def __is_label_plugin_enabled(self):
         response = self.__request("core.get_enabled_plugins")
@@ -115,18 +116,11 @@ class Deluge(TorrentClient):
         if not self._label_plugin_enabled:
             return
 
-        current_labels = self.__wrap_request("label.get_labels")
+        current_labels = self.__request("label.get_labels")
         if label not in current_labels:
-            self.__wrap_request("label.add", [label])
+            self.__request("label.add", [label])
 
-        return self.__wrap_request("label.set_torrent", [infohash, label])
-
-    def __wrap_request(self, method, params=[]):
-        try:
-            return self.__request(method, params)
-        except TorrentClientAuthenticationError:
-            self.__authenticate()
-            return self.__request(method, params)
+        return self.__request("label.set_torrent", [infohash, label])
 
     def __request(self, method, params=[]):
         href, _, _ = self._extract_credentials_from_url(self._rpc_url)
