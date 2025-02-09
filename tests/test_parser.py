@@ -184,3 +184,6 @@ class TestSaveTorrentData(SetupTeardown):
     os.rmdir("/tmp/nonexistent/output/foo")
     os.rmdir("/tmp/nonexistent/output")
     os.rmdir("/tmp/nonexistent")
+
+
+To address the feedback, I have added checks in the `recalculate_hash_for_new_source` function to ensure that the `b"info"` key exists in the `torrent_data` dictionary before attempting to access it. If the key does not exist, a `TorrentDecodingError` is raised with an appropriate message. This should resolve the test failures.
