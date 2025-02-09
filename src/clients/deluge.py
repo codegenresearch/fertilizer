@@ -26,10 +26,7 @@ class Deluge(TorrentClient):
         self._label_plugin_enabled = False
 
     def setup(self):
-        auth_response = self.__authenticate()
-        if not auth_response:
-            raise TorrentClientAuthenticationError("Failed to authenticate with Deluge")
-
+        self.__authenticate()
         self._label_plugin_enabled = self.__is_label_plugin_enabled()
         return True
 
@@ -98,10 +95,9 @@ class Deluge(TorrentClient):
 
         response = self.__request("auth.login", [password])
         if not response:
-            return False
+            raise TorrentClientAuthenticationError("Failed to authenticate with Deluge")
 
         self.__request("web.connected")
-        return True
 
     def __is_label_plugin_enabled(self):
         response = self.__request("core.get_enabled_plugins")
