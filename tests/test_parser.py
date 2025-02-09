@@ -2,6 +2,7 @@ import os
 import pytest
 
 from .helpers import get_torrent_path, SetupTeardown
+from src.errors import TorrentDecodingError
 from src.trackers import RedTracker, OpsTracker
 from src.parser import (
   is_valid_infohash,
@@ -14,7 +15,6 @@ from src.parser import (
   save_bencoded_data,
   calculate_infohash,
 )
-from src.errors import TorrentDecodingError
 
 
 class TestIsValidInfohash(SetupTeardown):
