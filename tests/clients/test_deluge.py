@@ -57,6 +57,7 @@ class TestSetup(SetupTeardown):
       response = deluge_client.setup()
 
       assert response
+      assert deluge_client._deluge_cookie is not None
       assert deluge_client._deluge_cookie == "supersecret"
 
   def test_raises_exception_on_failed_auth(self, api_url, deluge_client):
@@ -100,6 +101,7 @@ class TestSetup(SetupTeardown):
       response = deluge_client.setup()
 
       assert response
+      assert deluge_client._deluge_cookie is not None
       assert deluge_client._deluge_cookie == "newcookie"
 
   def test_sets_label_plugin_enabled_when_true(self, api_url, deluge_client):
