@@ -25,7 +25,9 @@ class Deluge(TorrentClient):
         self._label_plugin_enabled = False
 
     def setup(self):
-        return self.__authenticate()
+        self.__authenticate()
+        self._label_plugin_enabled = self.__is_label_plugin_enabled()
+        return True
 
     def get_torrent_info(self, infohash):
         infohash = infohash.lower()
@@ -104,12 +106,15 @@ class Deluge(TorrentClient):
         if not password:
             raise Exception("You need to define a password in the Deluge RPC URL. (e.g. http://:<PASSWORD>@localhost:8112)")
 
-        auth_response = self.__request("auth.login", [password])
+        try:
+            auth_response = self.__request("auth.login", [password])
+        except TorrentClientAuthenticationError as auth_error:
+            raise TorrentClientAuthenticationError("Failed to authenticate with Deluge") from auth_error
+
         if not auth_response:
             raise TorrentClientAuthenticationError("Failed to authenticate with Deluge")
 
         self.__request("web.connected")
-        return True
 
     def __is_label_plugin_enabled(self):
         response = self.__request("core.get_enabled_plugins")
@@ -169,7 +174,7 @@ class Deluge(TorrentClient):
             error_code = json_response["error"].get("code", 500)
             error_message = ERROR_CODES.get(error_code, "Unknown error")
             if error_code == 1:
-                raise TorrentClientAuthenticationError(f"Deluge method {method} returned an error: {error_message}")
+                raise TorrentClientAuthenticationError(f"Failed to authenticate with Deluge")
             raise TorrentClientError(f"Deluge method {method} returned an error: {error_message}")
 
         return json_response["result"]
