@@ -3,7 +3,7 @@ import requests
 from pathlib import Path
 from requests.structures import CaseInsensitiveDict
 
-from ..filesystem import url_join
+from ..utils import url_join
 from ..parser import get_bencoded_data, calculate_infohash
 from ..errors import TorrentClientError, TorrentClientAuthenticationError, TorrentExistsInClientError
 from .torrent_client import TorrentClient
