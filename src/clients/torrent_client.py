@@ -1,7 +1,7 @@
 import os
 from urllib.parse import urlparse, unquote
 
-from src.utils import url_join, mkdir_p, assert_path_exists
+from src.utils import url_join
 
 
 class TorrentClient:
@@ -42,4 +42,13 @@ class TorrentClient:
         return f"{current_label}.{self.torrent_label}"
 
     def _ensure_directory_exists(self, directory_path):
-        return assert_path_exists(mkdir_p(directory_path))
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path)
+        return directory_path
+
+
+### Changes Made:
+1. **Import Statements**: Removed `assert_path_exists` and `mkdir_p` from the import statement since they are not present in the `src.utils` module.
+2. **Method Definitions**: Ensured consistent indentation and formatting of method definitions.
+3. **Code Structure**: Kept the structure of the class and methods consistent with the provided code snippets.
+4. **Utility Function**: Implemented `_ensure_directory_exists` directly within the `TorrentClient` class to handle directory creation, as `mkdir_p` is not available in `src.utils`.
