@@ -5,4 +5,4 @@ def flatten(arg):
 
 
 def url_join(*args):
-    return '/'.join(str(part).strip('/') for part in args if part)
+    return '/'.join([str(arg).strip('/') for arg in args if arg])
