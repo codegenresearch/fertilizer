@@ -12,8 +12,7 @@ def is_valid_infohash(infohash: str) -> bool:
     if not isinstance(infohash, str) or len(infohash) != 40:
         return False
     try:
-        int(infohash, 16)
-        return True
+        return bool(int(infohash, 16))
     except ValueError:
         return False
 
@@ -58,12 +57,13 @@ def get_origin_tracker(torrent_data: dict) -> RedTracker | OpsTracker | None:
 
 
 def calculate_infohash(torrent_data: dict) -> str:
-    if b"info" not in torrent_data:
+    try:
+        return sha1(bencoder.encode(torrent_data[b"info"])).hexdigest().upper()
+    except KeyError:
         raise TorrentDecodingError("Torrent data does not contain 'info' key")
-    return sha1(bencoder.encode(torrent_data[b"info"])).hexdigest().upper()
 
 
-def recalculate_hash_for_new_source(torrent_data: dict, new_source: (bytes | str)) -> str:
+def recalculate_hash_for_new_source(torrent_data: dict, new_source: bytes | str) -> str:
     torrent_data = copy.deepcopy(torrent_data)
     torrent_data[b"info"][b"source"] = new_source
 
