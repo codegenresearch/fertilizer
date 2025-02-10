@@ -146,6 +146,9 @@ def __get_bencoded_data_and_tracker(torrent_path: str):
     if not source_torrent_data:
         raise TorrentDecodingError("Error decoding torrent file")
 
+    if b"info" not in source_torrent_data:
+        raise TorrentDecodingError("Torrent file is missing the 'info' section")
+
     torrent_tracker = get_origin_tracker(source_torrent_data)
     fastresume_tracker = get_origin_tracker(fastresume_data) if fastresume_data else None
     source_tracker = torrent_tracker or fastresume_tracker
