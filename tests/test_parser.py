@@ -1,9 +1,7 @@
 import os
-import pytest
 
 from .helpers import get_torrent_path, SetupTeardown
 
-from src.errors import TorrentDecodingError
 from src.trackers import RedTracker, OpsTracker
 from src.parser import (
   is_valid_infohash,
@@ -92,13 +90,14 @@ class TestCalculateInfohash(SetupTeardown):
 
     assert result == "FD2F1D966DF7E2E35B0CF56BC8510C6BB4D44467"
 
-  def test_raises_if_no_info_key(self):
+  def test_raises_error_if_info_key_missing(self):
     torrent_data = {}
-
-    with pytest.raises(TorrentDecodingError) as excinfo:
+    try:
       calculate_infohash(torrent_data)
-
-    assert "Torrent data does not contain 'info' key" in str(excinfo.value)
+    except TorrentDecodingError as e:
+      assert str(e) == "Torrent data does not contain 'info' key"
+    else:
+      assert False, "Expected TorrentDecodingError"
 
 
 class TestRecalculateHashForNewSource(SetupTeardown):
@@ -117,6 +116,16 @@ class TestRecalculateHashForNewSource(SetupTeardown):
     recalculate_hash_for_new_source(torrent_data, new_source)
 
     assert torrent_data == {b"info": {b"source": b"RED"}}
+
+  def test_raises_error_if_info_key_missing(self):
+    torrent_data = {}
+    new_source = b"OPS"
+    try:
+      recalculate_hash_for_new_source(torrent_data, new_source)
+    except TorrentDecodingError as e:
+      assert str(e) == "Torrent data does not contain 'info' key"
+    else:
+      assert False, "Expected TorrentDecodingError"
 
 
 class TestGetTorrentData(SetupTeardown):
@@ -165,3 +174,16 @@ class TestSaveTorrentData(SetupTeardown):
     assert os.path.exists("/tmp/output/foo")
 
     os.remove(filename)
+
+  def test_handles_missing_parent_directory(self):
+    torrent_data = {b"info": {b"source": b"RED"}}
+    filename = "/tmp/nonexistent/output/foo/test_save_bencoded_data.torrent"
+
+    save_bencoded_data(filename, torrent_data)
+
+    assert os.path.exists("/tmp/nonexistent/output/foo")
+
+    os.remove(filename)
+    os.rmdir("/tmp/nonexistent/output/foo")
+    os.rmdir("/tmp/nonexistent/output")
+    os.rmdir("/tmp/nonexistent")
