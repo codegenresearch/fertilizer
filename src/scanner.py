@@ -151,9 +151,11 @@ def __collect_infohashes_from_files(files: list[str]) -> dict:
   for filepath in files:
     try:
       torrent_data = get_bencoded_data(filepath)
+      if torrent_data is None:
+        continue
       infohash = calculate_infohash(torrent_data)
       infohash_dict[infohash] = filepath
-    except (UnicodeDecodeError, TorrentDecodingError):
+    except Exception:
       continue
 
   return infohash_dict
