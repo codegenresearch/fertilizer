@@ -15,18 +15,18 @@ def cli_entrypoint(args):
 
         if args.server:
             run_webserver(
-                input_directory=config.input_directory,
-                output_directory=config.output_directory,
+                input_directory=args.input_directory,
+                output_directory=args.output_directory,
                 red_api=red_api,
                 ops_api=ops_api,
-                port=config.server_port
+                port=os.environ.get("PORT", 9713)
             )
         elif args.input_file:
-            print(scan_torrent_file(args.input_file, config.output_directory, red_api, ops_api))
+            print(scan_torrent_file(args.input_file, args.output_directory, red_api, ops_api))
         elif args.input_directory:
-            print(scan_torrent_directory(args.input_directory, config.output_directory, red_api, ops_api))
+            print(scan_torrent_directory(args.input_directory, args.output_directory, red_api, ops_api))
     except Exception as e:
-        print(f"{Fore.RED}{str(e)}{Fore.RESET}")
+        print(f"{Fore.RED}{str(e)}{Fore.RESET}\n")
         exit(1)
 
 
@@ -48,5 +48,5 @@ if __name__ == "__main__":
     try:
         cli_entrypoint(args)
     except KeyboardInterrupt:
-        print(f"{Fore.RED}Exiting...{Fore.RESET}")
+        print(f"{Fore.RED}Exiting...{Fore.RESET}\n")
         exit(1)
