@@ -8,7 +8,7 @@ from .helpers import get_torrent_path, SetupTeardown
 from src.trackers import RedTracker, OpsTracker
 from src.parser import get_bencoded_data
 from src.errors import TorrentAlreadyExistsError, TorrentDecodingError, UnknownTrackerError, TorrentNotFoundError
-from src.torrent import generate_new_torrent_from_file
+from src.torrent import generate_new_torrent_from_file, __generate_torrent_output_filepath
 
 
 class TestGenerateNewTorrentFromFile(SetupTeardown):
