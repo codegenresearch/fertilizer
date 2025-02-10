@@ -19,11 +19,17 @@ def is_valid_infohash(infohash: str) -> bool:
 
 
 def get_source(torrent_data: dict) -> bytes | None:
-    return torrent_data.get(b"info", {}).get(b"source")
+    try:
+        return torrent_data[b"info"][b"source"]
+    except KeyError:
+        return None
 
 
 def get_name(torrent_data: dict) -> bytes | None:
-    return torrent_data.get(b"info", {}).get(b"name")
+    try:
+        return torrent_data[b"info"][b"name"]
+    except KeyError:
+        return None
 
 
 def get_announce_url(torrent_data: dict) -> list[bytes] | None:
@@ -69,8 +75,8 @@ def get_bencoded_data(filename: str) -> dict:
         with open(filename, "rb") as f:
             data = bencoder.decode(f.read())
         return data
-    except Exception as e:
-        raise TorrentDecodingError(f"Error decoding torrent file: {e}")
+    except Exception:
+        return None
 
 
 def save_bencoded_data(filepath: str, torrent_data: dict) -> str:
