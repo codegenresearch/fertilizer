@@ -10,6 +10,7 @@ def handle_error(
   wait_time: int = 0,
   extra_description: str = "",
   should_exit: bool = False,
+  error_code: int = 1,
 ) -> None:
   action = "Exiting" if should_exit else "Retrying"
   action += f" in {wait_time} seconds..." if wait_time else "..."
@@ -19,40 +20,71 @@ def handle_error(
   sleep(wait_time)
 
   if should_exit:
-    sys.exit(1)
+    sys.exit(error_code)
 
 
 class AuthenticationError(Exception):
-  pass
+  def __init__(self, message: str, error_code: int = 1001):
+    super().__init__(message)
+    self.error_code = error_code
 
 
 class TorrentDecodingError(Exception):
-  pass
+  def __init__(self, message: str, error_code: int = 1002):
+    super().__init__(message)
+    self.error_code = error_code
 
 
 class UnknownTrackerError(Exception):
-  pass
+  def __init__(self, message: str, error_code: int = 1003):
+    super().__init__(message)
+    self.error_code = error_code
 
 
 class TorrentNotFoundError(Exception):
-  pass
+  def __init__(self, message: str, error_code: int = 1004):
+    super().__init__(message)
+    self.error_code = error_code
 
 
 class TorrentAlreadyExistsError(Exception):
-  pass
+  def __init__(self, message: str, error_code: int = 1005):
+    super().__init__(message)
+    self.error_code = error_code
 
 
 class ConfigKeyError(Exception):
-  pass
+  def __init__(self, message: str, error_code: int = 1006):
+    super().__init__(message)
+    self.error_code = error_code
 
 
 class TorrentClientError(Exception):
-  pass
-
-
-class TorrentClientAuthenticationError(Exception):
-  pass
+  def __init__(self, message: str, error_code: int = 1007):
+    super().__init__(message)
+    self.error_code = error_code
 
 
 class TorrentInjectionError(Exception):
-  pass
+  def __init__(self, message: str, error_code: int = 1008):
+    super().__init__(message)
+    self.error_code = error_code
+
+
+def make_request(session, url, params, timeout, max_retries, retry_wait_time, error_handler):
+    current_retries = 1
+
+    while current_retries <= max_retries:
+        try:
+            response = session.get(url, params=params, timeout=timeout)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            error_handler(
+                description=f"Request failed: {e}",
+                wait_time=retry_wait_time(current_retries),
+                extra_description=f" (attempt {current_retries}/{max_retries})",
+            )
+            current_retries += 1
+
+    error_handler(description="Maximum number of retries reached", should_exit=True)
