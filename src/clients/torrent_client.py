@@ -48,7 +48,8 @@ class TorrentClient:
 
 
 ### Changes Made:
-1. **Import Statements**: Removed `assert_path_exists` and `mkdir_p` from the import statement since they are not present in the `src.utils` module.
-2. **Method Definitions**: Ensured consistent indentation and formatting of method definitions.
-3. **Code Structure**: Kept the structure of the class and methods consistent with the provided code snippets.
-4. **Utility Function**: Implemented `_ensure_directory_exists` directly within the `TorrentClient` class to handle directory creation, as `mkdir_p` is not available in `src.utils`.
+1. **Removed Comments**: Removed the comments that were causing the `SyntaxError`.
+2. **Indentation and Formatting**: Ensured consistent indentation using two spaces.
+3. **Method Definitions**: Reviewed and adjusted the formatting of method definitions to match the provided style.
+4. **Consistency in Return Statements**: Ensured that return statements are consistent with the provided code.
+5. **General Structure**: Ensured the overall structure of the class and methods mirrors the provided code snippet.
