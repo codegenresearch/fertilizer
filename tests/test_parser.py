@@ -1,9 +1,7 @@
 import os
-import pytest
 
-from .helpers import get_torrent_path, SetupTeardown
+from .helpers import get_torrent_path, SetupTeardown, copy_and_mkdir
 
-from src.errors import TorrentDecodingError
 from src.trackers import RedTracker, OpsTracker
 from src.parser import (
   is_valid_infohash,
@@ -92,13 +90,14 @@ class TestCalculateInfohash(SetupTeardown):
 
     assert result == "FD2F1D966DF7E2E35B0CF56BC8510C6BB4D44467"
 
-  def test_raises_if_no_info_key(self):
+  def test_raises_error_if_info_key_missing(self):
     torrent_data = {}
-
-    with pytest.raises(TorrentDecodingError) as excinfo:
+    try:
       calculate_infohash(torrent_data)
-
-    assert "Torrent data does not contain 'info' key" in str(excinfo.value)
+    except TorrentDecodingError as e:
+      assert str(e) == "Torrent data does not contain 'info' key"
+    else:
+      assert False, "Expected TorrentDecodingError"
 
 
 class TestRecalculateHashForNewSource(SetupTeardown):
@@ -118,6 +117,16 @@ class TestRecalculateHashForNewSource(SetupTeardown):
 
     assert torrent_data == {b"info": {b"source": b"RED"}}
 
+  def test_raises_error_if_info_key_missing(self):
+    torrent_data = {}
+    new_source = b"OPS"
+    try:
+      recalculate_hash_for_new_source(torrent_data, new_source)
+    except TorrentDecodingError as e:
+      assert str(e) == "Torrent data does not contain 'info' key"
+    else:
+      assert False, "Expected TorrentDecodingError"
+
 
 class TestGetTorrentData(SetupTeardown):
   def test_returns_torrent_data(self):
@@ -136,6 +145,7 @@ class TestSaveTorrentData(SetupTeardown):
   def test_saves_torrent_data(self):
     torrent_data = {b"info": {b"source": b"RED"}}
     filename = "/tmp/test_save_bencoded_data.torrent"
+    copy_and_mkdir(filename)
 
     save_bencoded_data(filename, torrent_data)
 
@@ -149,6 +159,7 @@ class TestSaveTorrentData(SetupTeardown):
   def test_returns_filename(self):
     torrent_data = {b"info": {b"source": b"RED"}}
     filename = "/tmp/test_save_bencoded_data.torrent"
+    copy_and_mkdir(filename)
 
     result = save_bencoded_data(filename, torrent_data)
 
@@ -159,6 +170,7 @@ class TestSaveTorrentData(SetupTeardown):
   def test_creates_parent_directory(self):
     torrent_data = {b"info": {b"source": b"RED"}}
     filename = "/tmp/output/foo/test_save_bencoded_data.torrent"
+    copy_and_mkdir(filename)
 
     save_bencoded_data(filename, torrent_data)
 
