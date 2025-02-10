@@ -29,7 +29,7 @@ def __verify_api_keys(config):
     ops_api = OpsAPI(config.ops_key)
 
     # This will perform a lookup with the API and raise if there was a failure.
-    # Also caches the announce URL for future use, which is a nice bonus.
+    # Also caches the announce URL for future use.
     red_api.announce_url
     ops_api.announce_url
 
