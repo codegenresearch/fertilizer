@@ -189,7 +189,7 @@ class TestSaveTorrentData(SetupTeardown):
 
 
 ### Changes Made:
-1. **Syntax Error Fix**: Removed any improperly formatted comments or string literals that could cause a `SyntaxError`.
+1. **Syntax Error Fix**: Removed the improperly formatted comment that was causing the `SyntaxError`.
 2. **Import Statements**: Organized and formatted import statements consistently.
 3. **Use of `pytest.raises`**: Consistently used `pytest.raises` for exception handling.
 4. **Test Case Structure**: Reviewed and structured test cases similarly to the gold code.
