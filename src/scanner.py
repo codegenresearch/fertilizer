@@ -23,16 +23,16 @@ def scan_torrent_file(
   injector: Injection | None,
 ) -> str:
   """
-  Scans a single .torrent file and generates a new one using the tracker API.
+  Scans a single `.torrent` file and generates a new one using the tracker API.
 
   Args:
-    source_torrent_path (str): The path to the .torrent file.
-    output_directory (str): The directory to save the new .torrent files.
-    red_api (RedAPI): The pre-configured RED tracker API.
-    ops_api (OpsAPI): The pre-configured OPS tracker API.
-    injector (Injection | None): The pre-configured torrent Injection object.
+    `source_torrent_path` (`str`): The path to the `.torrent` file.
+    `output_directory` (`str`): The directory to save the new `.torrent` files.
+    `red_api` (`RedAPI`): The pre-configured RED tracker API.
+    `ops_api` (`OpsAPI`): The pre-configured OPS tracker API.
+    `injector` (`Injection | None`): The pre-configured torrent Injection object.
   Returns:
-    str: The path to the new .torrent file.
+    `str`: The path to the new `.torrent` file.
   Raises:
     See `generate_new_torrent_from_file`.
   """
@@ -69,18 +69,18 @@ def scan_torrent_directory(
   injector: Injection | None,
 ) -> str:
   """
-  Scans a directory for .torrent files and generates new ones using the tracker APIs.
+  Scans a directory for `.torrent` files and generates new ones using the tracker APIs.
 
   Args:
-    input_directory (str): The directory containing the .torrent files.
-    output_directory (str): The directory to save the new .torrent files.
-    red_api (RedAPI): The pre-configured RED tracker API.
-    ops_api (OpsAPI): The pre-configured OPS tracker API.
-    injector (Injection | None): The pre-configured torrent Injection object.
+    `input_directory` (`str`): The directory containing the `.torrent` files.
+    `output_directory` (`str`): The directory to save the new `.torrent` files.
+    `red_api` (`RedAPI`): The pre-configured RED tracker API.
+    `ops_api` (`OpsAPI`): The pre-configured OPS tracker API.
+    `injector` (`Injection | None`): The pre-configured torrent Injection object.
   Returns:
-    str: A report of the scan.
+    `str`: A report of the scan.
   Raises:
-    FileNotFoundError: if the input directory does not exist.
+    `FileNotFoundError`: if the input directory does not exist.
   """
 
   input_directory = assert_path_exists(input_directory)
@@ -125,22 +125,16 @@ def scan_torrent_directory(
         )
     except TorrentDecodingError as e:
       p.error.print(str(e))
-      continue
     except UnknownTrackerError as e:
       p.skipped.print(str(e))
-      continue
     except TorrentAlreadyExistsError as e:
       p.already_exists.print(str(e))
-      continue
     except TorrentExistsInClientError as e:
       p.already_exists.print(str(e))
-      continue
     except TorrentNotFoundError as e:
       p.not_found.print(str(e))
-      continue
     except Exception as e:
       p.error.print(str(e))
-      continue
 
   return p.report()
 
