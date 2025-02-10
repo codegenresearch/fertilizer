@@ -26,11 +26,11 @@ def scan_torrent_file(
   Scans a single .torrent file and generates a new one using the tracker API.
 
   Args:
-    `source_torrent_path` (`str`): The path to the .torrent file.
-    `output_directory` (`str`): The directory to save the new .torrent files.
-    `red_api` (`RedAPI`): The pre-configured RED tracker API.
-    `ops_api` (`OpsAPI`): The pre-configured OPS tracker API.
-    `injector` (`Injection`): The pre-configured torrent Injection object.
+    source_torrent_path (str): The path to the .torrent file.
+    output_directory (str): The directory to save the new .torrent files.
+    red_api (RedAPI): The pre-configured RED tracker API.
+    ops_api (OpsAPI): The pre-configured OPS tracker API.
+    injector (Injection | None): The pre-configured torrent Injection object.
   Returns:
     str: The path to the new .torrent file.
   Raises:
@@ -72,15 +72,15 @@ def scan_torrent_directory(
   Scans a directory for .torrent files and generates new ones using the tracker APIs.
 
   Args:
-    `input_directory` (`str`): The directory containing the .torrent files.
-    `output_directory` (`str`): The directory to save the new .torrent files.
-    `red_api` (`RedAPI`): The pre-configured RED tracker API.
-    `ops_api` (`OpsAPI`): The pre-configured OPS tracker API.
-    `injector` (`Injection`): The pre-configured torrent Injection object.
+    input_directory (str): The directory containing the .torrent files.
+    output_directory (str): The directory to save the new .torrent files.
+    red_api (RedAPI): The pre-configured RED tracker API.
+    ops_api (OpsAPI): The pre-configured OPS tracker API.
+    injector (Injection | None): The pre-configured torrent Injection object.
   Returns:
     str: A report of the scan.
   Raises:
-    `FileNotFoundError`: if the input directory does not exist.
+    FileNotFoundError: if the input directory does not exist.
   """
 
   input_directory = assert_path_exists(input_directory)
@@ -151,10 +151,9 @@ def __collect_infohashes_from_files(files: list[str]) -> dict:
   for filepath in files:
     try:
       torrent_data = get_bencoded_data(filepath)
-      if torrent_data is None:
-        continue
-      infohash = calculate_infohash(torrent_data)
-      infohash_dict[infohash] = filepath
+      if torrent_data:
+        infohash = calculate_infohash(torrent_data)
+        infohash_dict[infohash] = filepath
     except Exception:
       continue
 
