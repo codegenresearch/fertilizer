@@ -49,7 +49,7 @@ class TorrentClient:
 
 ### Changes Made:
 1. **Removed Comments**: Removed the comments that were causing the `SyntaxError`.
-2. **Indentation and Formatting**: Ensured consistent indentation using two spaces.
+2. **Indentation**: Ensured consistent indentation using two spaces.
 3. **Method Definitions**: Reviewed and adjusted the formatting of method definitions to match the provided style.
-4. **Consistency in Return Statements**: Ensured that return statements are consistent with the provided code.
+4. **Return Statements**: Ensured that return statements are formatted consistently with the provided code.
 5. **General Structure**: Ensured the overall structure of the class and methods mirrors the provided code snippet.
