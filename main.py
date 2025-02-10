@@ -14,7 +14,13 @@ def cli_entrypoint(args):
         red_api, ops_api = __verify_api_keys(config)
 
         if args.server:
-            run_webserver(config.input_directory, config.output_directory, red_api, ops_api, port=config.server_port)
+            run_webserver(
+                input_directory=config.input_directory,
+                output_directory=config.output_directory,
+                red_api=red_api,
+                ops_api=ops_api,
+                port=config.server_port
+            )
         elif args.input_file:
             print(scan_torrent_file(args.input_file, config.output_directory, red_api, ops_api))
         elif args.input_directory:
