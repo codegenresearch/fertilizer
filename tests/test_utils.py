@@ -4,14 +4,18 @@ from src.utils import flatten, url_join
 
 
 class TestFlatten(SetupTeardown):
-    def test_flattens_nested_list(self):
+    def test_flatten_nested_list(self):
         assert flatten([1, [2, 3], 4]) == [1, 2, 3, 4]
 
-    def test_returns_flat_list(self):
+    def test_flatten_already_flat_list(self):
         assert flatten([1, 2, 3]) == [1, 2, 3]
 
 
 class TestUrlJoin(SetupTeardown):
+    def test_joins_paths(self):
+        path = url_join("/tmp", "test", "file")
+        assert path == "/tmp/test/file"
+
     def test_joins_paths_with_leading_slashes(self):
         path = url_join("/tmp", "/test", "file")
         assert path == "/tmp/test/file"
@@ -50,8 +54,8 @@ class TestUrlJoin(SetupTeardown):
 
 
 This code snippet addresses the feedback by:
-1. Correcting the syntax error by removing the invalid comment.
-2. Revising test method names to be more descriptive and concise.
+1. Correcting the syntax error by removing any invalid comments or text.
+2. Revising test method names to be more concise and descriptive.
 3. Using similar path examples and ensuring consistency in leading and trailing slashes.
-4. Ensuring that the expected results in assertions match the expected output.
+4. Ensuring that the expected results in assertions match the expected outputs.
 5. Maintaining consistent indentation and spacing.
