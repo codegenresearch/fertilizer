@@ -125,22 +125,16 @@ def scan_torrent_directory(
         )
     except TorrentDecodingError as e:
       p.error.print(str(e))
-      continue
     except UnknownTrackerError as e:
       p.skipped.print(str(e))
-      continue
     except TorrentAlreadyExistsError as e:
       p.already_exists.print(str(e))
-      continue
     except TorrentExistsInClientError as e:
       p.already_exists.print(str(e))
-      continue
     except TorrentNotFoundError as e:
       p.not_found.print(str(e))
-      continue
     except Exception as e:
       p.error.print(str(e))
-      continue
 
   return p.report()
 
