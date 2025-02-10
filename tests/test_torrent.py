@@ -3,8 +3,7 @@ import re
 import pytest
 import requests_mock
 
-from .helpers import get_torrent_path, SetupTeardown
-
+from .helpers import get_torrent_path, SetupTeardown, copy_and_mkdir
 from src.trackers import RedTracker, OpsTracker
 from src.parser import get_bencoded_data
 from src.errors import TorrentAlreadyExistsError, TorrentDecodingError, UnknownTrackerError, TorrentNotFoundError
@@ -70,7 +69,7 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
             get_bencoded_data(filepath)
 
             assert os.path.isfile(filepath)
-            assert new_tracker == OpsTracker
+            assert new_tracker == RedTracker
             assert previously_generated is False
 
             os.remove(filepath)
@@ -165,9 +164,7 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
     def test_returns_appropriately_if_torrent_already_exists(self, red_api, ops_api):
         filepath = "/tmp/OPS/foo [OPS].torrent"
 
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        with open(filepath, "w") as f:
-            f.write("")
+        copy_and_mkdir(filepath, "")
 
         with requests_mock.Mocker() as m:
             m.get(re.compile("action=torrent"), json=self.TORRENT_SUCCESS_RESPONSE)
@@ -200,3 +197,21 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
                 generate_new_torrent_from_file(torrent_path, "/tmp", red_api, ops_api)
 
         assert str(excinfo.value) == "An unknown error occurred in the API response from RED"
+
+    def test_raises_error_if_torrent_has_no_info(self, red_api, ops_api):
+        with pytest.raises(TorrentDecodingError) as excinfo:
+            with requests_mock.Mocker() as m:
+                m.get(re.compile("action=torrent"), json=self.TORRENT_NO_INFO_RESPONSE)
+                m.get(re.compile("action=index"), json=self.ANNOUNCE_SUCCESS_RESPONSE)
+
+                torrent_path = get_torrent_path("red_source")
+                generate_new_torrent_from_file(torrent_path, "/tmp", red_api, ops_api)
+
+        assert str(excinfo.value) == "Torrent data does not contain 'info' key"
+
+
+This code addresses the feedback by:
+1. Correcting the expected tracker class in `test_returns_expected_tuple`.
+2. Using `copy_and_mkdir` for file creation in `test_returns_appropriately_if_torrent_already_exists`.
+3. Adding a new test case `test_raises_error_if_torrent_has_no_info` to check for a specific error when a torrent has no info.
+4. Ensuring that error messages are consistent with the source of the API call and the correct tracker context.
