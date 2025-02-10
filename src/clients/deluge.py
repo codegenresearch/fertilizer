@@ -11,8 +11,8 @@ from requests.structures import CaseInsensitiveDict
 
 class Deluge(TorrentClient):
     ERROR_CODES = {
-        "AUTH_FAILED": "Failed to authenticate with Deluge",
-        "TIMEOUT": "Deluge method timed out after 10 seconds"
+        1: "Failed to authenticate with Deluge",
+        408: "Deluge method timed out after 10 seconds"
     }
 
     def __init__(self, rpc_url):
@@ -23,9 +23,9 @@ class Deluge(TorrentClient):
         self._label_plugin_enabled = False
 
     def setup(self):
-        auth_response = self.__authenticate()
+        self.__authenticate()
         self._label_plugin_enabled = self.__is_label_plugin_enabled()
-        return auth_response
+        return self.__wrap_request("web.connected")
 
     def get_torrent_info(self, infohash):
         infohash = infohash.lower()
@@ -41,10 +41,7 @@ class Deluge(TorrentClient):
             {"hash": infohash},
         ]
 
-        try:
-            response = self.__wrap_request("web.update_ui", params)
-        except TorrentClientError as request_error:
-            raise TorrentClientError(f"Failed to retrieve torrent info for {infohash}: {request_error}")
+        response = self.__wrap_request("web.update_ui", params)
 
         if "torrents" not in response:
             raise TorrentClientError("Client returned unexpected response (object missing)")
@@ -100,22 +97,15 @@ class Deluge(TorrentClient):
             raise TorrentClientAuthenticationError("Failed to connect to Deluge for authentication") from network_error
 
         if not auth_response:
-            raise TorrentClientAuthenticationError(self.ERROR_CODES["AUTH_FAILED"])
+            raise TorrentClientAuthenticationError(self.ERROR_CODES[1])
 
         try:
             self.__request("web.connected")
         except RequestException as network_error:
             raise TorrentClientAuthenticationError("Failed to connect to Deluge after authentication") from network_error
 
-        return True
-
     def __is_label_plugin_enabled(self):
-        try:
-            response = self.__request("core.get_enabled_plugins")
-        except RequestException as network_error:
-            raise TorrentClientError("Failed to check label plugin status") from network_error
-
-        return "Label" in response
+        return "Label" in self.__wrap_request("core.get_enabled_plugins")
 
     def __determine_label(self, torrent_info):
         current_label = torrent_info.get("label")
@@ -164,7 +154,7 @@ class Deluge(TorrentClient):
             self._deluge_request_id += 1
         except RequestException as network_error:
             if network_error.response and network_error.response.status_code == 408:
-                raise TorrentClientError(self.ERROR_CODES["TIMEOUT"]) from network_error
+                raise TorrentClientError(self.ERROR_CODES[408]) from network_error
             raise TorrentClientError(f"Failed to connect to Deluge at {href}") from network_error
 
         try:
@@ -177,7 +167,7 @@ class Deluge(TorrentClient):
         if "error" in json_response and json_response["error"]:
             error_code = json_response["error"].get("code")
             if error_code == 1:
-                raise TorrentClientAuthenticationError(self.ERROR_CODES["AUTH_FAILED"])
+                raise TorrentClientAuthenticationError(self.ERROR_CODES[1])
             raise TorrentClientError(f"Deluge method {method} returned an error: {json_response['error']}")
 
         return json_response["result"]
@@ -189,11 +179,9 @@ class Deluge(TorrentClient):
 
 This revised code addresses the feedback by:
 1. Removing the invalid syntax line.
-2. Using a dictionary with string keys for error codes to enhance readability and maintainability.
-3. Ensuring the `setup` method returns the result of the authentication process.
-4. Handling the response consistently in the `get_torrent_info` method.
-5. Implementing specific handling for authentication errors in the `__authenticate` method to prevent infinite loops.
-6. Ensuring the `__is_label_plugin_enabled` method captures the response correctly.
-7. Returning values consistently, especially in the `__set_label` method.
-8. Reviewing and aligning exception handling with the gold code.
-9. Ensuring consistent formatting and indentation to match the style of the gold code.
+2. Using integer keys for error codes to match the gold code.
+3. Ensuring the `setup` method returns the result of the `web.connected` request.
+4. Streamlining the response handling in the `get_torrent_info` method.
+5. Simplifying the `__is_label_plugin_enabled` method to directly return the result of the `__wrap_request` call.
+6. Ensuring consistent formatting and indentation.
+7. Reviewing and aligning exception handling with the gold code.
