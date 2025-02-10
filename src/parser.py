@@ -64,7 +64,7 @@ def calculate_infohash(torrent_data: dict) -> str:
         raise TorrentDecodingError("Torrent data does not contain 'info' key")
 
 
-def recalculate_hash_for_new_source(torrent_data: dict, new_source: (bytes | str)) -> str:
+def recalculate_hash_for_new_source(torrent_data: dict, new_source: bytes | str) -> str:
     torrent_data = copy.deepcopy(torrent_data)
     torrent_data[b"info"][b"source"] = new_source
 
