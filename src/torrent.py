@@ -75,7 +75,7 @@ def generate_new_torrent_from_file(
 
         return (new_tracker, save_bencoded_data(new_torrent_filepath, new_torrent_data))
     elif stored_api_response["error"] in ("bad hash parameter", "bad parameters"):
-        continue  # Skip to the next source if the current one is not found
+        raise TorrentNotFoundError(f"Torrent could not be found on {new_tracker.site_shortname()}")
 
   if stored_api_response and stored_api_response["status"] != "success":
       raise Exception(f"An unknown error occurred in the API response from {new_tracker.site_shortname()}")
@@ -99,8 +99,10 @@ def generate_torrent_output_filepath(api_response: dict, new_source: str, output
   """
 
   filepath_from_api_response = unescape(api_response["response"]["torrent"]["filePath"])
-  filename = f"{filepath_from_api_response} [{new_tracker.site_shortname().upper()}].torrent"
-  torrent_filepath = os.path.join(output_directory, new_tracker.site_shortname().upper(), filename)
+  tracker_name = new_tracker.site_shortname().upper()
+  source_name = new_source.upper() if new_source else ""
+  filename = f"{filepath_from_api_response} [{source_name}].torrent" if source_name else f"{filepath_from_api_response}.torrent"
+  torrent_filepath = os.path.join(output_directory, tracker_name, filename)
 
   if os.path.isfile(torrent_filepath):
     raise TorrentAlreadyExistsError(f"Torrent file already exists at {torrent_filepath}")
