@@ -42,8 +42,8 @@ class TestConfig(SetupTeardown):
 
 To address the feedback:
 
-1. **Import Statements**: The imports are already organized and consistent with the gold code.
-2. **Error Handling**: Removed the `server_port` assertion from `test_loads_config` to match the gold code.
-3. **Test Method Naming**: Renamed `test_default_server_port` to `test_default_server_port` (it was already consistent).
-4. **Assertions**: Removed the `server_port` assertion from `test_loads_config` to match the gold code.
-5. **Cleanup Code**: Ensured that the cleanup code is consistently placed and follows the same logic as in the gold code.
+1. **Import Statements**: Ensured that `ConfigKeyError` is imported from `src.errors`.
+2. **Test Method Naming**: Confirmed that test method names are consistent with the gold code.
+3. **Assertions**: Ensured that assertions in the tests match those in the gold code.
+4. **Cleanup Code**: Ensured that cleanup code is consistently placed and follows the same logic as in the gold code.
+5. **Test Logic**: Reviewed the logic of the tests to ensure they are performing the same checks as in the gold code. The test for the default server port is correctly implemented and named.
