@@ -21,7 +21,7 @@ def generate_new_torrent_from_file(
   ops_api: OpsAPI,
   input_infohashes: dict = {},
   output_infohashes: dict = {},
-) -> tuple[OpsTracker | RedTracker, str, bool]:
+) -> tuple[OpsTracker | RedTracker, str]:
   """
   Generates a new torrent file for the reciprocal tracker of the original torrent file if it exists on the reciprocal tracker.
 
@@ -33,8 +33,7 @@ def generate_new_torrent_from_file(
     `input_infohashes` (`dict`, optional): A dictionary of infohashes and their filenames from the input directory for caching purposes. Defaults to an empty dictionary.
     `output_infohashes` (`dict`, optional): A dictionary of infohashes and their filenames from the output directory for caching purposes. Defaults to an empty dictionary.
   Returns:
-    A tuple containing the new tracker class (`RedTracker` or `OpsTracker`), the path to the new torrent file, and a boolean
-    representing whether the torrent already existed (False: created just now, True: torrent file already existed).
+    A tuple containing the new tracker class (`RedTracker` or `OpsTracker`) and the path to the new torrent file.
   Raises:
     `TorrentDecodingError`: if the original torrent file could not be decoded.
     `UnknownTrackerError`: if the original torrent file is not from OPS or RED.
@@ -43,15 +42,11 @@ def generate_new_torrent_from_file(
     `Exception`: if an unknown error occurs.
   """
 
-  try:
-    source_torrent_data, source_tracker = __get_bencoded_data_and_tracker(source_torrent_path)
-  except KeyError as e:
-    raise TorrentDecodingError(f"Error decoding torrent file: Missing key {e}")
+  source_torrent_data, source_tracker = __get_bencoded_data_and_tracker(source_torrent_path)
 
   new_torrent_data = copy.deepcopy(source_torrent_data)
   new_tracker = source_tracker.reciprocal_tracker()
   new_tracker_api = __get_reciprocal_tracker_api(new_tracker, red_api, ops_api)
-  stored_api_response = None
 
   all_possible_hashes = __calculate_all_possible_hashes(source_torrent_data, new_tracker.source_flags_for_creation())
   found_input_hash = __check_matching_hashes(all_possible_hashes, input_infohashes)
@@ -62,7 +57,7 @@ def generate_new_torrent_from_file(
       f"Torrent already exists in input directory at {input_infohashes[found_input_hash]}"
     )
   if found_output_hash:
-    return (new_tracker, output_infohashes[found_output_hash], True)
+    return (new_tracker, output_infohashes[found_output_hash])
 
   for new_source in new_tracker.source_flags_for_creation():
     new_hash = recalculate_hash_for_new_source(source_torrent_data, new_source)
@@ -77,7 +72,7 @@ def generate_new_torrent_from_file(
       )
 
       if os.path.exists(new_torrent_filepath):
-        return (new_tracker, new_torrent_filepath, True)
+        return (new_tracker, new_torrent_filepath)
 
       if new_torrent_filepath:
         torrent_id = __get_torrent_id(stored_api_response)
@@ -87,9 +82,9 @@ def generate_new_torrent_from_file(
         new_torrent_data[b"comment"] = __generate_torrent_url(new_tracker_api.site_url, torrent_id).encode()
         save_bencoded_data(new_torrent_filepath, new_torrent_data)
 
-        return (new_tracker, new_torrent_filepath, False)
+        return (new_tracker, new_torrent_filepath)
 
-  if stored_api_response and stored_api_response.get("error") in ("bad hash parameter", "bad parameters"):
+  if stored_api_response.get("error") in ("bad hash parameter", "bad parameters"):
     raise TorrentNotFoundError(f"Torrent could not be found on {new_tracker.site_shortname()}")
 
   raise Exception(f"An unknown error occurred in the API response from {new_tracker.site_shortname()}")
@@ -142,18 +137,18 @@ def __get_bencoded_data_and_tracker(torrent_path):
   source_torrent_data = get_bencoded_data(torrent_path)
   fastresume_data = get_bencoded_data(fastresume_path)
 
-  if not source_torrent_data or b"info" not in source_torrent_data:
-    raise TorrentDecodingError("Error decoding torrent file: Missing 'info' section")
+  if not source_torrent_data:
+    raise TorrentDecodingError("Error decoding torrent file")
 
-  try:
-    torrent_tracker = get_origin_tracker(source_torrent_data)
-    fastresume_tracker = get_origin_tracker(fastresume_data) if fastresume_data else None
-    source_tracker = torrent_tracker or fastresume_tracker
+  if b"info" not in source_torrent_data:
+    raise TorrentDecodingError("Error decoding torrent file")
 
-    if not source_tracker:
-      raise UnknownTrackerError("Torrent not from OPS or RED based on source or announce URL")
-  except KeyError as e:
-    raise TorrentDecodingError(f"Error decoding torrent file: Missing key {e}")
+  torrent_tracker = get_origin_tracker(source_torrent_data)
+  fastresume_tracker = get_origin_tracker(fastresume_data) if fastresume_data else None
+  source_tracker = torrent_tracker or fastresume_tracker
+
+  if not source_tracker:
+    raise UnknownTrackerError("Torrent not from OPS or RED based on source or announce URL")
 
   return source_torrent_data, source_tracker
 
