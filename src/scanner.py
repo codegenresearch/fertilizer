@@ -60,8 +60,96 @@ def scan_torrent_file(
             )
 
         return new_torrent_filepath
-    except (TorrentDecodingError, UnknownTrackerError, TorrentNotFoundError, TorrentAlreadyExistsError, TorrentExistsInClientError) as e:
-        raise e
+    except TorrentDecodingError as e:
+        raise TorrentDecodingError(f"Error decoding torrent file: {e}")
+    except UnknownTrackerError as e:
+        raise UnknownTrackerError(f"Unknown tracker: {e}")
+    except TorrentNotFoundError as e:
+        raise TorrentNotFoundError(f"Torrent not found: {e}")
+    except TorrentAlreadyExistsError as e:
+        raise TorrentAlreadyExistsError(f"Torrent already exists: {e}")
+    except TorrentExistsInClientError as e:
+        raise TorrentExistsInClientError(f"Torrent already exists in client: {e}")
+    except Exception as e:
+        raise Exception(f"An unexpected error occurred: {e}")
+
+
+def scan_torrent_directory(
+  input_directory: str,
+  output_directory: str,
+  red_api: RedAPI,
+  ops_api: OpsAPI,
+  injector: Injection | None,
+) -> str:
+    """
+    Scans a directory for .torrent files and generates new ones using the tracker APIs.
+
+    Args:
+      `input_directory` (`str`): The directory containing the .torrent files.
+      `output_directory` (`str`): The directory to save the new .torrent files.
+      `red_api` (`RedAPI`): The pre-configured RED tracker API.
+      `ops_api` (`OpsAPI`): The pre-configured OPS tracker API.
+      `injector` (`Injection`): The pre-configured torrent Injection object.
+    Returns:
+      str: A report of the scan.
+    Raises:
+      `FileNotFoundError`: if the input directory does not exist.
+    """
+
+    input_directory = assert_path_exists(input_directory)
+    output_directory = mkdir_p(output_directory)
+
+    input_torrents = list_files_of_extension(input_directory, ".torrent")
+    output_torrents = list_files_of_extension(output_directory, ".torrent")
+    input_infohashes = __collect_infohashes_from_files(input_torrents)
+    output_infohashes = __collect_infohashes_from_files(output_torrents)
+
+    p = Progress(len(input_torrents))
+
+    for i, source_torrent_path in enumerate(input_torrents, 1):
+        basename = os.path.basename(source_torrent_path)
+        print(f"({i}/{p.total}) {basename}")
+
+        try:
+            new_tracker, new_torrent_filepath, was_previously_generated = generate_new_torrent_from_file(
+                source_torrent_path,
+                output_directory,
+                red_api,
+                ops_api,
+                input_infohashes,
+                output_infohashes,
+            )
+
+            if injector:
+                injector.inject_torrent(
+                    source_torrent_path,
+                    new_torrent_filepath,
+                    new_tracker.site_shortname(),
+                )
+
+            if was_previously_generated:
+                if injector:
+                    p.already_exists.print("Torrent was previously generated but was injected into your torrent client.")
+                else:
+                    p.already_exists.print("Torrent was previously generated.")
+            else:
+                p.generated.print(
+                    f"Found with source '{new_tracker.site_shortname()}' and generated as '{new_torrent_filepath}'."
+                )
+        except TorrentDecodingError as e:
+            p.error.print(f"Error decoding torrent file {basename}: {e}")
+        except UnknownTrackerError as e:
+            p.skipped.print(f"Unknown tracker for {basename}: {e}")
+        except TorrentAlreadyExistsError as e:
+            p.already_exists.print(f"Torrent already exists for {basename}: {e}")
+        except TorrentExistsInClientError as e:
+            p.already_exists.print(f"Torrent already exists in client for {basename}: {e}")
+        except TorrentNotFoundError as e:
+            p.not_found.print(f"Torrent not found for {basename}: {e}")
+        except Exception as e:
+            p.error.print(f"An unexpected error occurred for {basename}: {e}")
+
+    return p.report()
 
 
 def __collect_infohashes_from_files(files: list[str]) -> dict:
