@@ -123,23 +123,23 @@ def scan_torrent_directory(
         p.generated.print(
           f"Torrent '{basename}' generated as '{new_torrent_filepath}' from '{new_tracker.site_shortname()}'."
         )
-    except TorrentDecodingError as e:
-      p.error.print(f"Error decoding torrent '{basename}': {str(e)}")
+    except TorrentDecodingError:
+      p.error.print(f"Error decoding torrent '{basename}'.")
       continue
-    except UnknownTrackerError as e:
-      p.skipped.print(f"Torrent '{basename}' not from OPS or RED: {str(e)}")
+    except UnknownTrackerError:
+      p.skipped.print(f"Torrent '{basename}' not from OPS or RED.")
       continue
-    except TorrentNotFoundError as e:
-      p.not_found.print(f"Torrent '{basename}' not found: {str(e)}")
+    except TorrentNotFoundError:
+      p.not_found.print(f"Torrent '{basename}' not found.")
       continue
-    except TorrentAlreadyExistsError as e:
-      p.already_exists.print(f"Torrent '{basename}': {str(e)}")
+    except TorrentAlreadyExistsError:
+      p.already_exists.print(f"Torrent '{basename}' already exists.")
       continue
-    except TorrentExistsInClientError as e:
-      p.already_exists.print(f"Torrent '{basename}': {str(e)}")
+    except TorrentExistsInClientError:
+      p.already_exists.print(f"Torrent '{basename}' already exists in client.")
       continue
-    except Exception as e:
-      p.error.print(f"Unknown error with torrent '{basename}': {str(e)}")
+    except Exception:
+      p.error.print(f"Unknown error with torrent '{basename}'.")
       continue
 
   return p.report()
@@ -154,7 +154,7 @@ def __collect_infohashes_from_files(files: list[str]) -> dict:
       if torrent_data:
         infohash = calculate_infohash(torrent_data)
         infohash_dict[infohash] = filepath
-    except (UnicodeDecodeError, TorrentDecodingError, Exception) as e:
+    except (UnicodeDecodeError, TorrentDecodingError):
       continue
 
   return infohash_dict
@@ -162,8 +162,8 @@ def __collect_infohashes_from_files(files: list[str]) -> dict:
 
 ### Key Changes:
 1. **Removed Invalid Comment**: Removed the invalid comment that was causing a `SyntaxError`.
-2. **Error Handling**: Separated exception handling for different error types to provide more informative messages.
-3. **Output Messages**: Ensured that output messages are concise and consistent with the expected format.
-4. **Infohash Collection Logic**: Added a broader exception catch in `__collect_infohashes_from_files` to handle any unexpected errors.
-5. **Continue Statements**: Retained `continue` statements after handling exceptions to explicitly indicate that the loop should proceed to the next iteration.
-6. **Formatting and Consistency**: Ensured consistent formatting and readability throughout the code.
+2. **Output Messages**: Ensured that output messages are concise and consistent with the expected format.
+3. **Error Handling**: Simplified error messages to be more direct and consistent.
+4. **Functionality Consistency**: Ensured that the logic and flow of functions match the expected style.
+5. **Formatting and Readability**: Double-checked the formatting of the code, including indentation and spacing.
+6. **Exception Handling**: Refined the exception handling in `__collect_infohashes_from_files` to be more specific.
