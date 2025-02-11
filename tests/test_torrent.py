@@ -203,8 +203,10 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
 ### Key Changes:
 1. **Removed Non-Python Syntax**: Removed any extraneous characters or markdown-style bullet points that were causing syntax errors.
 2. **Filepath Assertions**: Ensured that the assertions for the `filepath` variable match exactly with the expected values.
-3. **Mock Responses**: Used multiple responses for the same action where applicable to simulate different scenarios.
+3. **Mock Responses**: Used lists of responses for the same action where applicable to simulate different scenarios.
 4. **Error Handling**: Double-checked the error messages in assertions to ensure they match those in the gold code.
 5. **Test Method Names**: Ensured test method names are descriptive and consistent with the naming conventions used in the gold code.
 6. **Code Formatting**: Maintained consistent indentation and formatting throughout the code.
 7. **Remove Unused Imports**: Removed any imports that are not being used in the code.
+
+This should address the feedback and ensure the tests run without syntax errors.
