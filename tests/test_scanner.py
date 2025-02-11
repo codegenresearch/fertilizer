@@ -87,11 +87,11 @@ class TestScanTorrentDirectory(SetupTeardown):
             scan_torrent_directory("/tmp/input", "/tmp/output", red_api, ops_api, None)
             captured = capsys.readouterr()
 
-        assert (
-            f"{Fore.LIGHTGREEN_EX}Found with source 'OPS' and generated as '/tmp/output/OPS/foo [OPS].torrent'.{Fore.RESET}"
-            in captured.out
+        expected_output = (
+            f"{Fore.LIGHTGREEN_EX}Found with source 'OPS' and generated as '/tmp/output/OPS/foo [OPS].torrent'.{Fore.RESET}\n"
+            f"{Fore.LIGHTGREEN_EX}Generated for cross-seeding{Fore.RESET}: 1\n"
         )
-        assert f"{Fore.LIGHTGREEN_EX}Generated for cross-seeding{Fore.RESET}: 1" in captured.out
+        assert captured.out == expected_output
 
     def test_reports_undecodable_torrents(self, capsys, red_api, ops_api):
         copy_and_mkdir(get_torrent_path("broken"), "/tmp/input/broken.torrent")
@@ -102,8 +102,11 @@ class TestScanTorrentDirectory(SetupTeardown):
             scan_torrent_directory("/tmp/input", "/tmp/output", red_api, ops_api, None)
             captured = capsys.readouterr()
 
-        assert f"{Fore.RED}Error decoding torrent file{Fore.RESET}" in captured.out
-        assert f"{Fore.RED}Errors{Fore.RESET}: 1" in captured.out
+        expected_output = (
+            f"{Fore.RED}Error decoding torrent file{Fore.RESET}\n"
+            f"{Fore.RED}Errors{Fore.RESET}: 1\n"
+        )
+        assert captured.out == expected_output
 
     def test_reports_unknown_tracker_torrents(self, capsys, red_api, ops_api):
         copy_and_mkdir(get_torrent_path("no_source"), "/tmp/input/no_source.torrent")
@@ -114,11 +117,11 @@ class TestScanTorrentDirectory(SetupTeardown):
             scan_torrent_directory("/tmp/input", "/tmp/output", red_api, ops_api, None)
             captured = capsys.readouterr()
 
-        assert (
-            f"{Fore.LIGHTBLACK_EX}Torrent not from OPS or RED based on source or announce URL{Fore.RESET}"
-            in captured.out
+        expected_output = (
+            f"{Fore.LIGHTBLACK_EX}Torrent not from OPS or RED based on source or announce URL{Fore.RESET}\n"
+            f"{Fore.LIGHTBLACK_EX}Skipped{Fore.RESET}: 1\n"
         )
-        assert f"{Fore.LIGHTBLACK_EX}Skipped{Fore.RESET}: 1" in captured.out
+        assert captured.out == expected_output
 
     def test_reports_already_existing_torrents(self, capsys, red_api, ops_api):
         copy_and_mkdir(get_torrent_path("red_source"), "/tmp/input/red_source.torrent")
@@ -130,8 +133,11 @@ class TestScanTorrentDirectory(SetupTeardown):
             scan_torrent_directory("/tmp/input", "/tmp/output", red_api, ops_api, None)
             captured = capsys.readouterr()
 
-        assert f"{Fore.LIGHTYELLOW_EX}Torrent was previously generated.{Fore.RESET}" in captured.out
-        assert f"{Fore.LIGHTYELLOW_EX}Already exists{Fore.RESET}: 1" in captured.out
+        expected_output = (
+            f"{Fore.LIGHTYELLOW_EX}Torrent was previously generated.{Fore.RESET}\n"
+            f"{Fore.LIGHTYELLOW_EX}Already exists{Fore.RESET}: 1\n"
+        )
+        assert captured.out == expected_output
 
     def test_considers_matching_input_torrents_as_existing(self, capsys, red_api, ops_api):
         copy_and_mkdir(get_torrent_path("red_source"), "/tmp/input/red_source.torrent")
@@ -143,11 +149,11 @@ class TestScanTorrentDirectory(SetupTeardown):
             scan_torrent_directory("/tmp/input", "/tmp/output", red_api, ops_api, None)
             captured = capsys.readouterr()
 
-        assert (
-            f"{Fore.LIGHTYELLOW_EX}Torrent already exists in input directory at /tmp/input/red_source.torrent{Fore.RESET}"
-            in captured.out
+        expected_output = (
+            f"{Fore.LIGHTYELLOW_EX}Torrent already exists in input directory at /tmp/input/red_source.torrent{Fore.RESET}\n"
+            f"{Fore.LIGHTYELLOW_EX}Already exists{Fore.RESET}: 2\n"
         )
-        assert f"{Fore.LIGHTYELLOW_EX}Already exists{Fore.RESET}: 2" in captured.out
+        assert captured.out == expected_output
 
     def test_considers_matching_output_torrents_as_existing(self, capsys, red_api, ops_api):
         copy_and_mkdir(get_torrent_path("red_source"), "/tmp/input/red_source.torrent")
@@ -159,8 +165,11 @@ class TestScanTorrentDirectory(SetupTeardown):
             scan_torrent_directory("/tmp/input", "/tmp/output", red_api, ops_api, None)
             captured = capsys.readouterr()
 
-        assert f"{Fore.LIGHTYELLOW_EX}Torrent was previously generated.{Fore.RESET}" in captured.out
-        assert f"{Fore.LIGHTYELLOW_EX}Already exists{Fore.RESET}: 1" in captured.out
+        expected_output = (
+            f"{Fore.LIGHTYELLOW_EX}Torrent was previously generated.{Fore.RESET}\n"
+            f"{Fore.LIGHTYELLOW_EX}Already exists{Fore.RESET}: 1\n"
+        )
+        assert captured.out == expected_output
 
     def test_calls_injector_on_duplicate(self, capsys, red_api, ops_api):
         injector_mock = MagicMock()
@@ -174,11 +183,11 @@ class TestScanTorrentDirectory(SetupTeardown):
             scan_torrent_directory("/tmp/input", "/tmp/output", red_api, ops_api, injector_mock)
             captured = capsys.readouterr()
 
-        assert (
-            f"{Fore.LIGHTYELLOW_EX}Torrent was previously generated but was injected into your torrent client.{Fore.RESET}"
-            in captured.out
+        expected_output = (
+            f"{Fore.LIGHTYELLOW_EX}Torrent was previously generated but was injected into your torrent client.{Fore.RESET}\n"
+            f"{Fore.LIGHTYELLOW_EX}Already exists{Fore.RESET}: 1\n"
         )
-        assert f"{Fore.LIGHTYELLOW_EX}Already exists{Fore.RESET}: 1" in captured.out
+        assert captured.out == expected_output
         injector_mock.inject_torrent.assert_called_once_with(
             "/tmp/input/red_source.torrent", "/tmp/output/ops_source.torrent", "OPS"
         )
@@ -195,8 +204,11 @@ class TestScanTorrentDirectory(SetupTeardown):
             scan_torrent_directory("/tmp/input", "/tmp/output", red_api, ops_api, injector_mock)
             captured = capsys.readouterr()
 
-        assert f"{Fore.LIGHTYELLOW_EX}Torrent exists in client{Fore.RESET}" in captured.out
-        assert f"{Fore.LIGHTYELLOW_EX}Already exists{Fore.RESET}: 1" in captured.out
+        expected_output = (
+            f"{Fore.LIGHTYELLOW_EX}Torrent exists in client{Fore.RESET}\n"
+            f"{Fore.LIGHTYELLOW_EX}Already exists{Fore.RESET}: 1\n"
+        )
+        assert captured.out == expected_output
 
     def test_reports_not_found_torrents(self, capsys, red_api, ops_api):
         copy_and_mkdir(get_torrent_path("red_source"), "/tmp/input/red_source.torrent")
@@ -207,8 +219,11 @@ class TestScanTorrentDirectory(SetupTeardown):
             scan_torrent_directory("/tmp/input", "/tmp/output", red_api, ops_api, None)
             captured = capsys.readouterr()
 
-        assert f"{Fore.LIGHTRED_EX}Torrent could not be found on OPS{Fore.RESET}" in captured.out
-        assert f"{Fore.LIGHTRED_EX}Not found{Fore.RESET}: 1" in captured.out
+        expected_output = (
+            f"{Fore.LIGHTRED_EX}Torrent could not be found on OPS{Fore.RESET}\n"
+            f"{Fore.LIGHTRED_EX}Not found{Fore.RESET}: 1\n"
+        )
+        assert captured.out == expected_output
 
     def test_reports_unknown_error_torrents(self, capsys, red_api, ops_api):
         copy_and_mkdir(get_torrent_path("red_source"), "/tmp/input/red_source.torrent")
@@ -219,8 +234,11 @@ class TestScanTorrentDirectory(SetupTeardown):
             scan_torrent_directory("/tmp/input", "/tmp/output", red_api, ops_api, None)
             captured = capsys.readouterr()
 
-        assert f"{Fore.RED}An unknown error occurred in the API response from OPS{Fore.RESET}" in captured.out
-        assert f"{Fore.RED}Errors{Fore.RESET}: 1" in captured.out
+        expected_output = (
+            f"{Fore.RED}An unknown error occurred in the API response from OPS{Fore.RESET}\n"
+            f"{Fore.RED}Errors{Fore.RESET}: 1\n"
+        )
+        assert captured.out == expected_output
 
     def test_reports_progress_for_mixed_torrents(self, capsys, red_api, ops_api):
         copy_and_mkdir(get_torrent_path("ops_announce"), "/tmp/input/ops_announce.torrent")
@@ -233,19 +251,16 @@ class TestScanTorrentDirectory(SetupTeardown):
             scan_torrent_directory("/tmp/input", "/tmp/output", red_api, ops_api, None)
             captured = capsys.readouterr()
 
-        assert "Analyzed 3 local torrents" in captured.out
-        assert (
-            f"{Fore.LIGHTGREEN_EX}Found with source 'RED' and generated as '/tmp/output/RED/foo [RED].torrent'.{Fore.RESET}"
-            in captured.out
+        expected_output = (
+            "Analyzed 3 local torrents\n"
+            f"{Fore.LIGHTGREEN_EX}Found with source 'RED' and generated as '/tmp/output/RED/foo [RED].torrent'.{Fore.RESET}\n"
+            f"{Fore.LIGHTGREEN_EX}Generated for cross-seeding{Fore.RESET}: 1\n"
+            f"{Fore.LIGHTBLACK_EX}Torrent not from OPS or RED based on source or announce URL{Fore.RESET}\n"
+            f"{Fore.LIGHTBLACK_EX}Skipped{Fore.RESET}: 1\n"
+            f"{Fore.RED}Error decoding torrent file{Fore.RESET}\n"
+            f"{Fore.RED}Errors{Fore.RESET}: 1\n"
         )
-        assert f"{Fore.LIGHTGREEN_EX}Generated for cross-seeding{Fore.RESET}: 1" in captured.out
-        assert (
-            f"{Fore.LIGHTBLACK_EX}Torrent not from OPS or RED based on source or announce URL{Fore.RESET}"
-            in captured.out
-        )
-        assert f"{Fore.LIGHTBLACK_EX}Skipped{Fore.RESET}: 1" in captured.out
-        assert f"{Fore.RED}Error decoding torrent file{Fore.RESET}" in captured.out
-        assert f"{Fore.RED}Errors{Fore.RESET}: 1" in captured.out
+        assert captured.out == expected_output
 
     def test_ignores_non_torrent_files(self, capsys, red_api, ops_api):
         copy_and_mkdir(get_torrent_path("red_source"), "/tmp/input/non-torrent.txt")
@@ -256,7 +271,8 @@ class TestScanTorrentDirectory(SetupTeardown):
             scan_torrent_directory("/tmp/input", "/tmp/output", red_api, ops_api, None)
             captured = capsys.readouterr()
 
-        assert "Analyzed 0 local torrents" in captured.out
+        expected_output = "Analyzed 0 local torrents\n"
+        assert captured.out == expected_output
 
     def test_calls_injector_if_injector_provided(self, red_api, ops_api):
         injector_mock = MagicMock()
