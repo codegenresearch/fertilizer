@@ -63,6 +63,7 @@ def generate_new_torrent_from_file(
         stored_api_response,
         new_tracker,
         output_directory,
+        new_source,
       )
 
       if new_torrent_filepath:
@@ -82,7 +83,7 @@ def generate_new_torrent_from_file(
     raise TorrentNotFoundError(f"No valid torrent found on {new_tracker.site_shortname()}")
 
 
-def generate_torrent_output_filepath(api_response: dict, new_tracker, output_directory: str) -> str:
+def generate_torrent_output_filepath(api_response: dict, new_tracker, output_directory: str, new_source: bytes) -> str:
   """
   Generates the output filepath for the new torrent file. Does not create the file.
 
@@ -90,6 +91,7 @@ def generate_torrent_output_filepath(api_response: dict, new_tracker, output_dir
     `api_response` (`dict`): The response from the tracker API.
     `new_tracker`: The new tracker object.
     `output_directory` (`str`): The directory to save the new torrent file.
+    `new_source` (`bytes`): The source of the new torrent file.
   Returns:
     The path to the new torrent file.
   Raises:
@@ -98,7 +100,9 @@ def generate_torrent_output_filepath(api_response: dict, new_tracker, output_dir
 
   filepath_from_api_response = unescape(api_response["response"]["torrent"]["filePath"])
   filename = os.path.basename(filepath_from_api_response)
-  torrent_filepath = os.path.join(output_directory, new_tracker.site_shortname(), filename)
+  source_name = new_source.decode("utf-8")
+  filename_with_suffix = f"{filename} [{source_name}].torrent"
+  torrent_filepath = os.path.join(output_directory, new_tracker.site_shortname(), filename_with_suffix)
 
   if os.path.isfile(torrent_filepath):
     raise TorrentAlreadyExistsError(f"Torrent file already exists at {torrent_filepath}")
