@@ -123,10 +123,22 @@ def scan_torrent_directory(
         p.generated.print(
           f"Found with source '{new_tracker.site_shortname()}' and generated as '{new_torrent_filepath}'."
         )
-    except (TorrentDecodingError, UnknownTrackerError, TorrentNotFoundError, TorrentAlreadyExistsError, TorrentExistsInClientError) as e:
-      p.error.print(str(e))
+    except TorrentDecodingError:
+      p.error.print("Error decoding torrent file")
       continue
-    except Exception as e:
+    except UnknownTrackerError:
+      p.skipped.print("Torrent not from OPS or RED based on source or announce URL")
+      continue
+    except TorrentAlreadyExistsError as e:
+      p.already_exists.print(str(e))
+      continue
+    except TorrentExistsInClientError as e:
+      p.already_exists.print(str(e))
+      continue
+    except TorrentNotFoundError as e:
+      p.not_found.print(str(e))
+      continue
+    except Exception:
       p.error.print("An unknown error occurred")
       continue
 
@@ -143,7 +155,7 @@ def __collect_infohashes_from_files(files: list[str]) -> dict:
       if torrent_data:
         infohash = calculate_infohash(torrent_data)
         infohash_dict[infohash] = filepath
-    except UnicodeDecodeError:
+    except (UnicodeDecodeError, KeyError):
       continue
 
   return infohash_dict
