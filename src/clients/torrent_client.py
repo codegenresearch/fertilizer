@@ -1,6 +1,6 @@
 import os
 from urllib.parse import urlparse, unquote
-from src.filesystem import sane_join
+from src.utils import url_join
 
 class TorrentClient:
     def __init__(self):
@@ -9,10 +9,10 @@ class TorrentClient:
     def setup(self):
         raise NotImplementedError
 
-    def get_torrent_info(self, infohash):
+    def get_torrent_info(self, *args, **kwargs):
         raise NotImplementedError
 
-    def inject_torrent(self, source_torrent_infohash, new_torrent_filepath, save_path_override=None):
+    def inject_torrent(self, *args, **kwargs):
         raise NotImplementedError
 
     def _extract_credentials_from_url(self, url, base_path=None):
@@ -21,14 +21,20 @@ class TorrentClient:
         password = unquote(parsed_url.password) if parsed_url.password else ""
         origin = f"{parsed_url.scheme}://{parsed_url.hostname}:{parsed_url.port}"
 
-        href = sane_join(origin, os.path.normpath(base_path)) if base_path else sane_join(origin, parsed_url.path if parsed_url.path != "/" else "")
+        if base_path:
+            href = url_join(origin, os.path.normpath(base_path))
+        else:
+            href = url_join(origin, parsed_url.path if parsed_url.path != "/" else "")
+
         return href, username, password
 
     def _determine_label(self, torrent_info):
         current_label = torrent_info.get("label", "")
+        if not current_label:
+            return self.torrent_label
         if current_label == self.torrent_label or current_label.endswith(f".{self.torrent_label}"):
             return current_label
-        return f"{current_label}.{self.torrent_label}" if current_label else self.torrent_label
+        return f"{current_label}.{self.torrent_label}"
 
     def list_torrents(self):
         """List all torrents in the client."""
