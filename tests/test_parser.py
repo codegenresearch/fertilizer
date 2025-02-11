@@ -178,7 +178,7 @@ class TestSaveTorrentData(SetupTeardown):
 
 
 ### Key Changes:
-1. **Removed the Comment**: Ensured there are no invalid comments that could cause syntax errors.
+1. **Removed Invalid Comment**: Removed the invalid comment that was causing the `SyntaxError`.
 2. **Import Statements**: Confirmed all necessary imports are included and organized correctly.
 3. **Error Handling**: Used `pytest.raises` to check for exceptions and asserted the exception message consistently.
 4. **Consistency in Test Method Naming**: Ensured test method names are consistent and descriptive.
