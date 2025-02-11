@@ -11,11 +11,7 @@ from .errors import TorrentDecodingError
 def is_valid_infohash(infohash: str) -> bool:
     if not isinstance(infohash, str) or len(infohash) != 40:
         return False
-    try:
-        int(infohash, 16)
-        return True
-    except ValueError:
-        return False
+    return bool(int(infohash, 16))
 
 
 def get_source(torrent_data: dict) -> bytes | None:
@@ -35,9 +31,7 @@ def get_name(torrent_data: dict) -> bytes | None:
 def get_announce_url(torrent_data: dict) -> list[bytes] | None:
     from_announce = torrent_data.get(b"announce")
     if from_announce:
-        if isinstance(from_announce, bytes):
-            return [from_announce]
-        return from_announce
+        return [from_announce] if isinstance(from_announce, bytes) else from_announce
 
     from_trackers = torrent_data.get(b"trackers")
     if from_trackers:
@@ -61,8 +55,7 @@ def get_origin_tracker(torrent_data: dict) -> RedTracker | OpsTracker | None:
 
 def calculate_infohash(torrent_data: dict) -> str:
     try:
-        info_data = torrent_data[b"info"]
-        return sha1(bencoder.encode(info_data)).hexdigest().upper()
+        return sha1(bencoder.encode(torrent_data[b"info"])).hexdigest().upper()
     except KeyError:
         raise TorrentDecodingError("Torrent data does not contain 'info' key")
 
@@ -77,9 +70,8 @@ def recalculate_hash_for_new_source(torrent_data: dict, new_source: bytes | str)
 def get_bencoded_data(filename: str) -> dict:
     try:
         with open(filename, "rb") as f:
-            data = bencoder.decode(f.read())
-        return data
-    except Exception:
+            return bencoder.decode(f.read())
+    except (FileNotFoundError, bencoder.BencodeDecodeError):
         return None
 
 
