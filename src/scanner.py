@@ -116,9 +116,9 @@ def scan_torrent_directory(
 
             if was_previously_generated:
                 if injector:
-                    p.already_exists.print("Torrent was previously generated but was injected into your torrent client.")
+                    p.already_exists.print(f"Torrent already exists in input directory at {output_infohashes[calculate_infohash(get_bencoded_data(source_torrent_path))]} and was injected into your torrent client.")
                 else:
-                    p.already_exists.print("Torrent was previously generated.")
+                    p.already_exists.print(f"Torrent already exists in input directory at {output_infohashes[calculate_infohash(get_bencoded_data(source_torrent_path))]}")
             else:
                 p.generated.print(
                     f"Found with source '{new_tracker.site_shortname()}' and generated as '{new_torrent_filepath}'."
@@ -126,17 +126,16 @@ def scan_torrent_directory(
         except TorrentDecodingError:
             p.error.print("Error decoding torrent file")
         except UnknownTrackerError:
-            p.skipped.print("Unknown tracker")
-        except TorrentAlreadyExistsError:
-            p.already_exists.print("Torrent already exists")
+            p.skipped.print("Torrent not from OPS or RED based on source or announce URL")
+        except TorrentAlreadyExistsError as e:
+            p.already_exists.print(str(e))
         except TorrentExistsInClientError:
             p.already_exists.print("Torrent already exists in client")
         except TorrentNotFoundError:
-            p.not_found.print("Torrent not found")
-        except Exception:
-            p.error.print("An unexpected error occurred")
-        else:
-            continue
+            p.not_found.print("Torrent could not be found on OPS")
+        except Exception as e:
+            p.error.print(f"An unknown error occurred in the API response: {str(e)}")
+        continue
 
     return p.report()
 
