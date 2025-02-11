@@ -3,7 +3,7 @@ import requests
 from pathlib import Path
 from requests.structures import CaseInsensitiveDict
 
-from ..filesystem import url_join
+from ..utils import url_join
 from ..parser import get_bencoded_data, calculate_infohash
 from ..errors import TorrentClientError, TorrentClientAuthenticationError, TorrentExistsInClientError
 from .torrent_client import TorrentClient
@@ -72,7 +72,7 @@ class Qbittorrent(TorrentClient):
 
             # This method specifically does not use the __wrap_request method
             # because we want to avoid an infinite loop of re-authenticating
-            response = requests.post(url_join(href, "auth/login"), data=payload)
+            response = requests.post(f"{href}/auth/login", data=payload)
             response.raise_for_status()
         except requests.RequestException as e:
             raise TorrentClientAuthenticationError(f"qBittorrent login failed: {e}")
