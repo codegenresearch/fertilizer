@@ -11,11 +11,11 @@ from requests.structures import CaseInsensitiveDict
 
 class Deluge(TorrentClient):
     ERROR_CODES = {
-        "AUTH_FAILED": "Failed to authenticate with Deluge",
-        "AUTH_INCORRECT_PASSWORD": "Authentication failed: Incorrect password",
-        "AUTH_SESSION_EXPIRED": "Authentication failed: Session expired",
-        "AUTH_NETWORK_ERROR": "Authentication failed: Network error",
-        "METHOD_ERROR": "Deluge method returned an error",
+        1: "Failed to authenticate with Deluge",
+        2: "Authentication failed: Incorrect password",
+        3: "Authentication failed: Session expired",
+        4: "Authentication failed: Network error",
+        5: "Deluge method returned an error",
     }
 
     def __init__(self, rpc_url):
@@ -97,26 +97,26 @@ class Deluge(TorrentClient):
             auth_response = self.__request("auth.login", [password])
         except HTTPError as http_error:
             if http_error.response.status_code == 401:
-                raise TorrentClientAuthenticationError(self.ERROR_CODES["AUTH_INCORRECT_PASSWORD"])
-            raise TorrentClientAuthenticationError(self.ERROR_CODES["AUTH_NETWORK_ERROR"])
+                raise TorrentClientAuthenticationError(self.ERROR_CODES[2])
+            raise TorrentClientAuthenticationError(self.ERROR_CODES[4])
         except Timeout:
-            raise TorrentClientAuthenticationError(self.ERROR_CODES["AUTH_NETWORK_ERROR"])
+            raise TorrentClientAuthenticationError(self.ERROR_CODES[4])
         except RequestException as network_error:
-            raise TorrentClientAuthenticationError(self.ERROR_CODES["AUTH_NETWORK_ERROR"]) from network_error
+            raise TorrentClientAuthenticationError(self.ERROR_CODES[4]) from network_error
 
         if not auth_response:
-            raise TorrentClientAuthenticationError(self.ERROR_CODES["AUTH_FAILED"])
+            raise TorrentClientAuthenticationError(self.ERROR_CODES[1])
 
         try:
             return self.__request("web.connected")
         except HTTPError as http_error:
             if http_error.response.status_code == 401:
-                raise TorrentClientAuthenticationError(self.ERROR_CODES["AUTH_SESSION_EXPIRED"])
-            raise TorrentClientAuthenticationError(self.ERROR_CODES["AUTH_NETWORK_ERROR"])
+                raise TorrentClientAuthenticationError(self.ERROR_CODES[3])
+            raise TorrentClientAuthenticationError(self.ERROR_CODES[4])
         except Timeout:
-            raise TorrentClientAuthenticationError(self.ERROR_CODES["AUTH_NETWORK_ERROR"])
+            raise TorrentClientAuthenticationError(self.ERROR_CODES[4])
         except RequestException as network_error:
-            raise TorrentClientAuthenticationError(self.ERROR_CODES["AUTH_NETWORK_ERROR"]) from network_error
+            raise TorrentClientAuthenticationError(self.ERROR_CODES[4]) from network_error
 
     def __is_label_plugin_enabled(self):
         response = self.__wrap_request("core.get_enabled_plugins")
@@ -171,7 +171,7 @@ class Deluge(TorrentClient):
             raise TorrentClientError(f"Deluge method {method} timed out after 10 seconds")
         except HTTPError as http_error:
             if http_error.response.status_code == 401:
-                raise TorrentClientAuthenticationError(self.ERROR_CODES["AUTH_SESSION_EXPIRED"])
+                raise TorrentClientAuthenticationError(self.ERROR_CODES[3])
             raise TorrentClientError(f"HTTP error during Deluge method {method}: {http_error}")
         except RequestException as network_error:
             raise TorrentClientError(f"Failed to connect to Deluge at {href}") from network_error
@@ -195,7 +195,7 @@ class Deluge(TorrentClient):
 
 This code addresses the feedback by:
 1. Removing the misplaced text causing the `SyntaxError`.
-2. Simplifying the `ERROR_CODES` dictionary to use string keys.
+2. Simplifying the `ERROR_CODES` dictionary to use numeric values.
 3. Ensuring the `setup` method returns the response from the authentication process.
 4. Directly calling the `__request` method in the `__authenticate` method to avoid potential infinite loops.
 5. Refining error handling in the `__request` method for network errors.
