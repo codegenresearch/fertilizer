@@ -68,6 +68,15 @@ class TestSetup(SetupTeardown):
 
       assert "Failed to authenticate with Deluge" in str(excinfo.value)
 
+  def test_raises_exception_on_errored_auth(self, api_url, deluge_client):
+    with requests_mock.Mocker() as m:
+      m.post(api_url, additional_matcher=auth_matcher, status_code=500)
+
+      with pytest.raises(TorrentClientError) as excinfo:
+        deluge_client.setup()
+
+      assert "Failed to connect to Deluge at http://localhost:8112/json" in str(excinfo.value)
+
   def test_sets_label_plugin_enabled_when_true(self, api_url, deluge_client):
     assert not deluge_client._label_plugin_enabled
 
