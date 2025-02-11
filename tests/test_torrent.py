@@ -140,7 +140,7 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
         assert str(excinfo.value) == "Torrent already exists in input directory at /path/to/foo"
 
     def test_pre_checks_all_infohashes_for_collision(self, red_api, ops_api):
-        # This hash corresponds to that a torrent with the source of "APL"
+        # This hash corresponds to a torrent with the source of "APL"
         input_hashes = {"84508469124335BDE03043105C6E54E00C17B04C": "/path/to/foo"}
 
         with requests_mock.Mocker() as m:
