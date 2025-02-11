@@ -2,10 +2,10 @@ import os
 from colorama import Fore
 
 from src.api import RedAPI, OpsAPI
+from src.args import parse_args
 from src.config import Config
 from src.scanner import scan_torrent_directory, scan_torrent_file
 from src.webserver import run_webserver
-from src.args import parse_args
 
 
 def cli_entrypoint(args):
@@ -14,7 +14,13 @@ def cli_entrypoint(args):
         red_api, ops_api = __verify_api_keys(config)
 
         if args.server:
-            run_webserver(args.input_directory, args.output_directory, red_api, ops_api, port=config.server_port)
+            run_webserver(
+                args.input_directory,
+                args.output_directory,
+                red_api,
+                ops_api,
+                port=config.server_port
+            )
         elif args.input_file:
             print(scan_torrent_file(args.input_file, args.output_directory, red_api, ops_api))
         elif args.input_directory:
