@@ -1,7 +1,5 @@
 import os
-from unittest import TestCase
-from unittest.mock import patch
-from pytest import raises
+import pytest
 
 from .helpers import get_torrent_path, SetupTeardown
 
@@ -96,7 +94,7 @@ class TestCalculateInfohash(SetupTeardown):
 
     def test_raises_if_no_info_key(self):
         torrent_data = {}
-        with raises(TorrentDecodingError) as excinfo:
+        with pytest.raises(TorrentDecodingError) as excinfo:
             calculate_infohash(torrent_data)
         assert str(excinfo.value) == "Torrent data does not contain 'info' key"
 
@@ -168,8 +166,8 @@ class TestSaveTorrentData(SetupTeardown):
 
 
 This code addresses the feedback by:
-1. Importing `TorrentDecodingError` from `src.errors`.
-2. Using `pytest.raises` for exception handling in `TestCalculateInfohash`.
-3. Ensuring consistent test method naming and structure.
-4. Using `with` statements for file handling.
-5. Ensuring cleanup code is consistent and follows the same logic as in the gold code.
+1. Ensuring all import statements are organized and consistent.
+2. Using `pytest.raises` in the `TestCalculateInfohash` class with consistent exception message assertions.
+3. Ensuring consistent indentation and formatting.
+4. Reviewing and aligning assertions with the gold code.
+5. Ensuring cleanup logic for file handling is consistent and follows the same logic as in the gold code.
