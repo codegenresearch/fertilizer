@@ -15,7 +15,7 @@ def cli_entrypoint(args):
         red_api, ops_api = __verify_api_keys(config)
 
         if args.server:
-            port = config.get('server_port', 9713)
+            port = config.server_port
             run_webserver(args.input_directory, args.output_directory, red_api, ops_api, port=port)
         elif args.input_file:
             print(scan_torrent_file(args.input_file, args.output_directory, red_api, ops_api))
@@ -27,8 +27,8 @@ def cli_entrypoint(args):
 
 
 def __verify_api_keys(config):
-    red_key = config.get('red_key', '')
-    ops_key = config.get('ops_key', '')
+    red_key = config.red_key
+    ops_key = config.ops_key
 
     if not red_key:
         raise Exception('Missing configuration key: red_key')
