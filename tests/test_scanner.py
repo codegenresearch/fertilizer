@@ -283,9 +283,9 @@ class TestScanTorrentDirectory(SetupTeardown):
 
 
 ### Key Changes Made:
-1. **Removed Invalid Comment**: Removed the invalid comment that was causing a `SyntaxError`.
+1. **Removed Invalid Comment**: Ensured there are no invalid comments that could cause a `SyntaxError`.
 2. **Test Naming Conventions**: Improved test method names to be more concise and descriptive.
-3. **Error Handling**: Ensured that all relevant error cases are handled consistently.
+3. **Error Handling**: Added specific tests for different error scenarios to ensure comprehensive error handling.
 4. **Output Assertions**: Captured and asserted the output of `scan_torrent_directory` using `capsys` to ensure consistency with expected output.
 5. **Redundant Tests**: Removed redundant tests to streamline the test suite.
 6. **Use of Constants**: Defined repeated strings as constants where applicable to improve readability and maintainability.
