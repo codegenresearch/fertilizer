@@ -1,5 +1,5 @@
-def url_join(*args: str) -> str:
-    path_parts = [part.strip('/') for part in args if part]
+def url_join(*args):
+    path_parts = [str(arg).strip('/') for arg in args if str(arg).strip()]
     return '/'.join(path_parts)
 
 # The flatten function remains in its original location or can be moved to utils.py if preferred
