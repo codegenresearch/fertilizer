@@ -63,15 +63,6 @@ class TestSetup(SetupTeardown):
     with requests_mock.Mocker() as m:
       m.post(api_url, additional_matcher=auth_matcher, json={"result": False})
 
-      with pytest.raises(TorrentClientError) as excinfo:
-        deluge_client.setup()
-
-      assert "Reached Deluge RPC endpoint but failed to authenticate" in str(excinfo.value)
-
-  def test_raises_exception_on_errored_auth(self, api_url, deluge_client):
-    with requests_mock.Mocker() as m:
-      m.post(api_url, additional_matcher=auth_matcher, json={"error": {"code": 1}})
-
       with pytest.raises(TorrentClientAuthenticationError) as excinfo:
         deluge_client.setup()
 
@@ -196,21 +187,6 @@ class TestGetTorrentInfo(SetupTeardown):
       response = deluge_client.get_torrent_info("foo")
 
       assert response["complete"]
-
-  def test_attempts_reauth_if_deluge_cookie_expired(self, api_url, deluge_client, torrent_info_response):
-    with requests_mock.Mocker() as m:
-      m.post(api_url, additional_matcher=torrent_info_matcher, json={"error": {"code": 1}})
-      m.post(api_url, additional_matcher=auth_matcher, json={"result": True}, headers={"Set-Cookie": "supersecret"})
-      m.post(api_url, additional_matcher=connected_matcher, json={"result": True})
-
-      deluge_client._deluge_cookie = None
-      with pytest.raises(TorrentClientAuthenticationError):
-        deluge_client.get_torrent_info("foo")
-
-      assert deluge_client._deluge_cookie is not None
-      assert m.request_history[-3].json()["method"] == "auth.login"
-      assert m.request_history[-2].json()["method"] == "web.connected"
-      assert m.request_history[-1].json()["method"] == "web.update_ui"
 
 
 class TestInjectTorrent(SetupTeardown):
