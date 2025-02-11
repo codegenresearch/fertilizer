@@ -12,13 +12,7 @@ from src.webserver import run_webserver
 def cli_entrypoint(args):
     try:
         config = Config().load(args.config_file)
-        red_api = RedAPI(config.red_key)
-        ops_api = OpsAPI(config.ops_key)
-
-        # This will perform a lookup with the API and raise if there was a failure.
-        # Also caches the announce URL for future use which is a nice bonus
-        red_api.announce_url
-        ops_api.announce_url
+        red_api, ops_api = __verify_api_keys(config)
 
         if args.server:
             run_webserver(args.input_directory, args.output_directory, red_api, ops_api, port=config.server_port)
@@ -29,6 +23,18 @@ def cli_entrypoint(args):
     except Exception as e:
         print(f"{Fore.RED}{str(e)}{Fore.RESET}")
         exit(1)
+
+
+def __verify_api_keys(config):
+    red_api = RedAPI(config.red_key)
+    ops_api = OpsAPI(config.ops_key)
+
+    # This will perform a lookup with the API and raise if there was a failure.
+    # Also caches the announce URL for future use which is a nice bonus
+    red_api.announce_url
+    ops_api.announce_url
+
+    return red_api, ops_api
 
 
 if __name__ == "__main__":
