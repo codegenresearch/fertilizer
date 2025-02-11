@@ -19,27 +19,21 @@ def is_valid_infohash(infohash: str) -> bool:
 
 
 def get_source(torrent_data: dict) -> bytes | None:
-    try:
-        return torrent_data[b"info"][b"source"]
-    except KeyError:
-        return None
+    return torrent_data.get(b"info", {}).get(b"source")
 
 
 def get_name(torrent_data: dict) -> bytes | None:
-    try:
-        return torrent_data[b"info"][b"name"]
-    except KeyError:
-        return None
+    return torrent_data.get(b"info", {}).get(b"name")
 
 
 def get_announce_url(torrent_data: dict) -> list[bytes] | None:
-    announce_url = torrent_data.get(b"announce")
-    if announce_url:
-        return [announce_url] if isinstance(announce_url, bytes) else announce_url
+    from_announce = torrent_data.get(b"announce")
+    if from_announce:
+        return [from_announce] if isinstance(from_announce, bytes) else from_announce
 
-    trackers = torrent_data.get(b"trackers")
-    if trackers:
-        return flatten(trackers)
+    from_trackers = torrent_data.get(b"trackers")
+    if from_trackers:
+        return flatten(from_trackers)
 
     return None
 
@@ -58,12 +52,9 @@ def get_origin_tracker(torrent_data: dict) -> RedTracker | OpsTracker | None:
 
 
 def calculate_infohash(torrent_data: dict) -> str:
-    try:
-        if b"info" not in torrent_data:
-            raise TorrentDecodingError("Torrent data does not contain 'info' key")
-        return sha1(bencoder.encode(torrent_data[b"info"])).hexdigest().upper()
-    except Exception as e:
-        raise TorrentDecodingError(f"Error calculating infohash: {e}")
+    if b"info" not in torrent_data:
+        raise TorrentDecodingError("Torrent data does not contain 'info' key")
+    return sha1(bencoder.encode(torrent_data[b"info"])).hexdigest().upper()
 
 
 def recalculate_hash_for_new_source(torrent_data: dict, new_source: bytes | str) -> str:
@@ -77,10 +68,8 @@ def get_bencoded_data(filename: str) -> dict:
     try:
         with open(filename, "rb") as f:
             return bencoder.decode(f.read())
-    except FileNotFoundError:
-        raise TorrentDecodingError(f"File not found: {filename}")
-    except Exception as e:
-        raise TorrentDecodingError(f"Error decoding torrent file: {e}")
+    except Exception:
+        return None
 
 
 def save_bencoded_data(filepath: str, torrent_data: dict) -> str:
