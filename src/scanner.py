@@ -116,31 +116,25 @@ def scan_torrent_directory(
 
       if was_previously_generated:
         if injector:
-          p.already_exists.print("Torrent was previously generated but was injected into your torrent client.")
+          p.already_exists.print(f"Torrent '{basename}' was previously generated but was injected into your torrent client.")
         else:
-          p.already_exists.print("Torrent was previously generated.")
+          p.already_exists.print(f"Torrent '{basename}' was previously generated.")
       else:
         p.generated.print(
-          f"Found with source '{new_tracker.site_shortname()}' and generated as '{new_torrent_filepath}'."
+          f"Torrent '{basename}' found with source '{new_tracker.site_shortname()}' and generated as '{new_torrent_filepath}'."
         )
     except TorrentDecodingError as e:
-      p.error.print(f"Error decoding torrent file: {str(e)}")
-      continue
+      p.error.print(f"Error decoding torrent file '{basename}': {str(e)}")
     except UnknownTrackerError as e:
-      p.skipped.print(f"Torrent not from OPS or RED based on source or announce URL: {str(e)}")
-      continue
+      p.skipped.print(f"Torrent '{basename}' not from OPS or RED based on source or announce URL: {str(e)}")
     except TorrentAlreadyExistsError as e:
-      p.already_exists.print(str(e))
-      continue
+      p.already_exists.print(f"Torrent '{basename}': {str(e)}")
     except TorrentExistsInClientError as e:
-      p.already_exists.print(str(e))
-      continue
+      p.already_exists.print(f"Torrent '{basename}': {str(e)}")
     except TorrentNotFoundError as e:
-      p.not_found.print(str(e))
-      continue
+      p.not_found.print(f"Torrent '{basename}': {str(e)}")
     except Exception as e:
-      p.error.print(f"An unknown error occurred in the API response: {str(e)}")
-      continue
+      p.error.print(f"An unknown error occurred for torrent '{basename}': {str(e)}")
 
   return p.report()
 
@@ -151,13 +145,9 @@ def __collect_infohashes_from_files(files: list[str]) -> dict:
   for filepath in files:
     try:
       torrent_data = get_bencoded_data(filepath)
-
-      if torrent_data and b"info" in torrent_data:
-        infohash = calculate_infohash(torrent_data)
-        infohash_dict[infohash] = filepath
-      else:
-        raise TorrentDecodingError("Torrent data does not contain the required 'info' key")
-    except (UnicodeDecodeError, TorrentDecodingError) as e:
+      infohash = calculate_infohash(torrent_data)
+      infohash_dict[infohash] = filepath
+    except (UnicodeDecodeError, TorrentDecodingError):
       continue
 
   return infohash_dict
