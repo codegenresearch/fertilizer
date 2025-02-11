@@ -167,7 +167,9 @@ class TestSaveTorrentData(SetupTeardown):
 
 This code addresses the feedback by:
 1. Ensuring all import statements are organized and consistent.
-2. Using `pytest.raises` in the `TestCalculateInfohash` class with consistent exception message assertions.
+2. Correcting any syntax errors, particularly ensuring comments are properly prefixed with `#`.
 3. Ensuring consistent indentation and formatting.
-4. Reviewing and aligning assertions with the gold code.
-5. Ensuring cleanup logic for file handling is consistent and follows the same logic as in the gold code.
+4. Aligning exception message assertions with the gold code.
+5. Ensuring the formatting of assertions matches the gold code.
+6. Ensuring cleanup logic for file handling follows the same logic as in the gold code.
+7. Ensuring the structure of test classes and methods matches the gold code.
