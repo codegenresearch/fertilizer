@@ -12,11 +12,16 @@ from src.webserver import run_webserver
 def cli_entrypoint(args):
     try:
         config = Config().load(args.config_file)
-        red_api, ops_api = __verify_api_keys(config)
+        red_api = RedAPI(config.red_key)
+        ops_api = OpsAPI(config.ops_key)
+
+        # This will perform a lookup with the API and raise if there was a failure.
+        # Also caches the announce URL for future use which is a nice bonus
+        red_api.announce_url
+        ops_api.announce_url
 
         if args.server:
-            port = config.server_port
-            run_webserver(args.input_directory, args.output_directory, red_api, ops_api, port=port)
+            run_webserver(args.input_directory, args.output_directory, red_api, ops_api, port=config.server_port)
         elif args.input_file:
             print(scan_torrent_file(args.input_file, args.output_directory, red_api, ops_api))
         elif args.input_directory:
@@ -24,26 +29,6 @@ def cli_entrypoint(args):
     except Exception as e:
         print(f"{Fore.RED}{str(e)}{Fore.RESET}")
         exit(1)
-
-
-def __verify_api_keys(config):
-    red_key = config.red_key
-    ops_key = config.ops_key
-
-    if not red_key:
-        raise Exception('Missing configuration key: red_key')
-    if not ops_key:
-        raise Exception('Missing configuration key: ops_key')
-
-    red_api = RedAPI(red_key)
-    ops_api = OpsAPI(ops_key)
-
-    # This will perform a lookup with the API and raise if there was a failure.
-    # Also caches the announce URL for future use which is a nice bonus
-    red_api.announce_url
-    ops_api.announce_url
-
-    return red_api, ops_api
 
 
 if __name__ == "__main__":
