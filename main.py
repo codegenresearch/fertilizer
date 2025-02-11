@@ -5,7 +5,6 @@ from src.api import RedAPI, OpsAPI
 from src.args import parse_args
 from src.config import Config
 from src.scanner import scan_torrent_directory, scan_torrent_file
-
 from src.webserver import run_webserver
 
 
