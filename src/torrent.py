@@ -97,9 +97,8 @@ def generate_torrent_output_filepath(api_response: dict, new_tracker, output_dir
   """
 
   filepath_from_api_response = unescape(api_response["response"]["torrent"]["filePath"])
-  source_name = new_tracker.source_flags_for_creation()[0].decode("utf-8") if new_tracker.source_flags_for_creation() else "unknown"
-  filename = f"{filepath_from_api_response} [{source_name}].torrent"
-  torrent_filepath = os.path.join(output_directory, source_name, filename)
+  filename = os.path.basename(filepath_from_api_response)
+  torrent_filepath = os.path.join(output_directory, new_tracker.site_shortname(), filename)
 
   if os.path.isfile(torrent_filepath):
     raise TorrentAlreadyExistsError(f"Torrent file already exists at {torrent_filepath}")
