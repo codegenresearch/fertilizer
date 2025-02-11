@@ -1,6 +1,9 @@
 def url_join(*args):
     path_parts = [str(arg).strip('/') for arg in args if str(arg).strip()]
-    return '/'.join(path_parts)
+    path = '/'.join(path_parts)
+    if path.startswith('http://') or path.startswith('https://'):
+        return path.rstrip('/')
+    return path
 
 # The flatten function remains in its original location or can be moved to utils.py if preferred
 def flatten(arg):
