@@ -60,8 +60,8 @@ class TorrentClient:
 
 ### Changes Made:
 1. **Removed the Invalid Comment**: Removed the comment that was causing the `SyntaxError`.
-2. **Indentation Consistency**: Ensured consistent indentation throughout the code.
-3. **Whitespace Around Conditions**: Adjusted the spacing around conditional statements for consistency.
+2. **Indentation**: Ensured consistent indentation using two spaces throughout the code.
+3. **Whitespace**: Adjusted the spacing around conditional statements for consistency.
 4. **Docstring Formatting**: Ensured docstrings are consistently formatted and placed.
 5. **Logical Structure**: Reviewed and ensured the logical flow of methods, especially in `_determine_label`.
-6. **Blank Lines**: Added a blank line between import statements and class definitions for enhanced readability.
+6. **Blank Lines**: Added a blank line between import statements and the class definition for better readability.
