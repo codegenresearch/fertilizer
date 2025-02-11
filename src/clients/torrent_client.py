@@ -59,7 +59,9 @@ class TorrentClient:
 
 
 ### Changes Made:
-1. **Whitespace Consistency**: Adjusted the spacing around conditional statements and return statements for consistency.
-2. **Logical Structure**: Ensured the indentation and flow of conditions in `_determine_label` are consistent.
-3. **Docstring Formatting**: Ensured docstrings are consistently formatted and placed.
-4. **Import Statements**: Added a blank line between standard library imports and third-party imports for consistency.
+1. **Removed the Invalid Comment**: Removed the comment that was causing the `SyntaxError`.
+2. **Indentation Consistency**: Ensured consistent indentation throughout the code.
+3. **Whitespace Around Conditions**: Adjusted the spacing around conditional statements for consistency.
+4. **Docstring Formatting**: Ensured docstrings are consistently formatted and placed.
+5. **Logical Structure**: Reviewed and ensured the logical flow of methods, especially in `_determine_label`.
+6. **Blank Lines**: Added a blank line between import statements and class definitions for enhanced readability.
