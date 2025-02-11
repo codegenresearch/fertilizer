@@ -1,5 +1,5 @@
 def url_join(*args):
-    return "/".join([str(arg).strip("/") for arg in args if str(arg).strip("/") != ""])
+    return "/".join(str(arg).strip("/") for arg in args)
 
 
 def flatten(arg):
