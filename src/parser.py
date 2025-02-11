@@ -11,7 +11,11 @@ from .errors import TorrentDecodingError
 def is_valid_infohash(infohash: str) -> bool:
     if not isinstance(infohash, str) or len(infohash) != 40:
         return False
-    return bool(int(infohash, 16))
+    try:
+        int(infohash, 16)
+        return True
+    except ValueError:
+        return False
 
 
 def get_source(torrent_data: dict) -> bytes | None:
@@ -60,7 +64,7 @@ def calculate_infohash(torrent_data: dict) -> str:
         raise TorrentDecodingError("Torrent data does not contain 'info' key")
 
 
-def recalculate_hash_for_new_source(torrent_data: dict, new_source: bytes | str) -> str:
+def recalculate_hash_for_new_source(torrent_data: dict, new_source: (bytes | str)) -> str:
     torrent_data = copy.deepcopy(torrent_data)
     torrent_data[b"info"][b"source"] = new_source
 
@@ -68,10 +72,12 @@ def recalculate_hash_for_new_source(torrent_data: dict, new_source: bytes | str)
 
 
 def get_bencoded_data(filename: str) -> dict:
+    if not os.path.exists(filename):
+        return None
     try:
         with open(filename, "rb") as f:
             return bencoder.decode(f.read())
-    except (FileNotFoundError, bencoder.BencodeDecodeError):
+    except Exception:
         return None
 
 
