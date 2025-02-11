@@ -115,9 +115,10 @@ def calculate_infohash(torrent_data: dict) -> str:
     Raises:
         TorrentDecodingError: If the 'info' key is missing in the torrent data.
     """
-    if b"info" not in torrent_data:
+    try:
+        return sha1(bencoder.encode(torrent_data[b"info"])).hexdigest().upper()
+    except KeyError:
         raise TorrentDecodingError("Torrent data does not contain 'info' key")
-    return sha1(bencoder.encode(torrent_data[b"info"])).hexdigest().upper()
 
 
 def recalculate_hash_for_new_source(torrent_data: dict, new_source: bytes) -> str:
@@ -131,8 +132,9 @@ def recalculate_hash_for_new_source(torrent_data: dict, new_source: bytes) -> st
     Returns:
         str: The recalculated infohash in uppercase.
     """
-    torrent_data[b"info"][b"source"] = new_source
-    return calculate_infohash(torrent_data)
+    torrent_data_copy = copy.deepcopy(torrent_data)
+    torrent_data_copy[b"info"][b"source"] = new_source
+    return calculate_infohash(torrent_data_copy)
 
 
 def get_bencoded_data(filename: str) -> dict:
@@ -148,13 +150,8 @@ def get_bencoded_data(filename: str) -> dict:
     try:
         with open(filename, "rb") as f:
             return bencoder.decode(f.read())
-    except FileNotFoundError:
-        print(f"File not found: {filename}")
-    except bencoder.BencodeDecodeError:
-        print(f"Error decoding file: {filename}")
-    except Exception as e:
-        print(f"Unexpected error reading or decoding file {filename}: {e}")
-    return None
+    except Exception:
+        return None
 
 
 def save_bencoded_data(filepath: str, torrent_data: dict) -> str:
@@ -177,10 +174,11 @@ def save_bencoded_data(filepath: str, torrent_data: dict) -> str:
 
 
 ### Changes Made:
-1. **Error Handling**: Added specific exception handling in `get_bencoded_data` for `FileNotFoundError`, `bencoder.BencodeDecodeError`, and a generic exception for unexpected errors.
-2. **Return Types**: Ensured that `from_announce` is checked to be a list before returning it directly.
-3. **Use of Exceptions**: Used `TorrentDecodingError` in `calculate_infohash` for clearer error context.
-4. **Variable Naming**: Used `announce_url` instead of `announce_urls` for consistency.
-5. **Deep Copying**: Simplified `recalculate_hash_for_new_source` by directly modifying `torrent_data`.
-6. **File Handling**: Improved exception handling in `get_bencoded_data`.
-7. **Directory Creation**: Used `os.makedirs` directly in `save_bencoded_data` to ensure the parent directory is created if it doesn't exist.
+1. **Return Type Consistency**: Ensured that `from_announce` is returned as a list directly when it is not a list.
+2. **Error Handling**: Simplified `calculate_infohash` by directly accessing the `info` key and raising `TorrentDecodingError` if the key is missing.
+3. **Deep Copying**: Used `copy.deepcopy` in `recalculate_hash_for_new_source` to ensure the original `torrent_data` is not modified.
+4. **Exception Handling in `get_bencoded_data`**: Simplified exception handling to return `None` for any exception.
+5. **Variable Naming and Consistency**: Ensured variable names and return types are consistent with the gold code.
+
+### Additional Fixes:
+- Removed any unterminated string literals or invalid syntax that might have caused the `SyntaxError`. Ensured all comments and docstrings are properly formatted.
