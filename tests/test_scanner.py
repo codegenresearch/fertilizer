@@ -280,7 +280,18 @@ class TestScanTorrentDirectory(SetupTeardown):
             "/tmp/input/red_source.torrent", "/tmp/output/OPS/foo [OPS].torrent", "OPS"
         )
 
-    def test_handles_torrent_with_bad_encoding(self, red_api, ops_api):
+    def test_handles_torrent_with_no_info(self, red_api, ops_api):
+        copy_and_mkdir(get_torrent_path("no_info"), "/tmp/input/no_info.torrent")
+
+        with requests_mock.Mocker() as m:
+            m.get(re.compile("action=torrent"), json=self.TORRENT_SUCCESS_RESPONSE)
+            m.get(re.compile("action=index"), json=self.ANNOUNCE_SUCCESS_RESPONSE)
+            with pytest.raises(TorrentDecodingError) as excinfo:
+                scan_torrent_directory("/tmp/input", "/tmp/output", red_api, ops_api, None)
+
+        assert str(excinfo.value) == "Error decoding torrent file"
+
+    def test_handles_torrent_with_bad_encoding_in_directory(self, red_api, ops_api):
         copy_and_mkdir(get_torrent_path("red_source"), "/tmp/input/red_source.torrent")
         copy_and_mkdir(get_torrent_path("broken_name"), "/tmp/input/broken_name.torrent")
 
@@ -293,7 +304,7 @@ class TestScanTorrentDirectory(SetupTeardown):
 ### Key Changes Made:
 1. **Removed Invalid Comment**: Ensured there are no invalid comments that could cause a `SyntaxError`.
 2. **Test Naming Conventions**: Improved test method names to be more concise and descriptive.
-3. **Error Handling**: Added specific tests for different error scenarios to ensure comprehensive error handling.
+3. **Error Handling**: Added specific tests for different error scenarios, including handling torrents with no info and bad encoding.
 4. **Output Assertions**: Captured and asserted the output of `scan_torrent_directory` using `capsys` to ensure consistency with expected output. Used `in` to check for specific strings in the captured output.
 5. **Redundant Tests**: Removed redundant tests to streamline the test suite.
 6. **Use of Constants**: Defined repeated strings as constants where applicable to improve readability and maintainability.
