@@ -42,14 +42,17 @@ def scan_torrent_file(
   output_torrents = list_files_of_extension(output_directory, ".torrent")
   output_infohashes = __collect_infohashes_from_files(output_torrents)
 
-  new_tracker, new_torrent_filepath, _ = generate_new_torrent_from_file(
-    source_torrent_path,
-    output_directory,
-    red_api,
-    ops_api,
-    input_infohashes={},
-    output_infohashes=output_infohashes,
-  )
+  try:
+    new_tracker, new_torrent_filepath, _ = generate_new_torrent_from_file(
+      source_torrent_path,
+      output_directory,
+      red_api,
+      ops_api,
+      input_infohashes={},
+      output_infohashes=output_infohashes,
+    )
+  except TorrentDecodingError as e:
+    raise TorrentDecodingError(f"Error decoding torrent file: {e}") from e
 
   if injector:
     injector.inject_torrent(
@@ -124,7 +127,7 @@ def scan_torrent_directory(
           f"Found with source '{new_tracker.site_shortname()}' and generated as '{new_torrent_filepath}'."
         )
     except TorrentDecodingError as e:
-      p.error.print(str(e))
+      p.error.print(f"Error decoding torrent file: {e}")
       continue
     except UnknownTrackerError as e:
       p.skipped.print(str(e))
@@ -139,7 +142,7 @@ def scan_torrent_directory(
       p.not_found.print(str(e))
       continue
     except Exception as e:
-      p.error.print(str(e))
+      p.error.print(f"An unknown error occurred: {e}")
       continue
 
   return p.report()
@@ -153,9 +156,13 @@ def __collect_infohashes_from_files(files: list[str]) -> dict:
       torrent_data = get_bencoded_data(filepath)
 
       if torrent_data:
+        if b'info' not in torrent_data:
+          raise TorrentDecodingError("Missing 'info' key in torrent data.")
         infohash = calculate_infohash(torrent_data)
         infohash_dict[infohash] = filepath
-    except Exception:
+    except UnicodeDecodeError:
       continue
+    except TorrentDecodingError as e:
+      print(f"Error processing file {filepath}: {e}")
 
   return infohash_dict
