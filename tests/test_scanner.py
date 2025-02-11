@@ -20,7 +20,7 @@ from src.scanner import scan_torrent_directory, scan_torrent_file
 
 
 class TestScanTorrentFile(SetupTeardown):
-    def test_gets_mad_if_torrent_file_does_not_exist(self, red_api, ops_api):
+    def test_raises_error_if_torrent_file_does_not_exist(self, red_api, ops_api):
         with pytest.raises(FileNotFoundError):
             scan_torrent_file("/tmp/nonexistent.torrent", "/tmp/output", red_api, ops_api, None)
 
@@ -84,7 +84,7 @@ class TestScanTorrentFile(SetupTeardown):
 
 
 class TestScanTorrentDirectory(SetupTeardown):
-    def test_gets_mad_if_input_directory_does_not_exist(self, red_api, ops_api):
+    def test_raises_error_if_input_directory_does_not_exist(self, red_api, ops_api):
         with pytest.raises(FileNotFoundError):
             scan_torrent_directory("/tmp/nonexistent", "/tmp/output", red_api, ops_api, None)
 
