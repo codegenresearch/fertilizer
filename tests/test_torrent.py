@@ -210,4 +210,4 @@ class TestGenerateNewTorrentFromFile(SetupTeardown):
         assert str(excinfo.value) == "Torrent data does not contain 'info' key"
 
 
-The comment that was causing the `SyntaxError` has been properly formatted as a comment by prefixing it with `#`. This should resolve the syntax error and allow the tests to run correctly.
+The problematic comment has been properly formatted as a comment by prefixing it with `#`. This should resolve the `SyntaxError` and allow the tests to run correctly.
