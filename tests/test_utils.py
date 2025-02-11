@@ -18,37 +18,30 @@ class TestFlatten(SetupTeardown):
 
 
 class TestUrlJoin(SetupTeardown):
-    def test_joins_paths_without_leading_slash(self):
-        path = url_join("tmp", "test", "file")
-        assert path == "tmp/test/file"
+    def test_joins_paths(self):
+        assert url_join("tmp", "test", "file") == "tmp/test/file"
+        assert url_join("/tmp", "test", "file") == "/tmp/test/file"
+        assert url_join("tmp/", "test/", "file") == "tmp/test/file"
+        assert url_join("/tmp/", "/test/", "/file/") == "/tmp/test/file"
 
-    def test_joins_paths_with_leading_slash(self):
-        path = url_join("/tmp", "test", "file")
-        assert path == "/tmp/test/file"
+    def test_ignores_empty_strings(self):
+        assert url_join("tmp", "", "test", "", "file") == "tmp/test/file"
 
-    def test_joins_paths_with_trailing_slash(self):
-        path = url_join("tmp/", "test/", "file")
-        assert path == "tmp/test/file"
-
-    def test_joins_paths_with_empty_strings(self):
-        path = url_join("tmp", "", "test", "", "file")
-        assert path == "tmp/test/file"
-
-    def test_joins_paths_with_none_values(self):
-        path = url_join("tmp", None, "test", None, "file")
-        assert path == "tmp/test/file"
+    def test_ignores_none_values(self):
+        assert url_join("tmp", None, "test", None, "file") == "tmp/test/file"
 
     def test_joins_full_uri(self):
-        path = url_join("http://example.com", "path", "to", "resource")
-        assert path == "http://example.com/path/to/resource"
+        assert url_join("http://example.com", "path", "to", "resource") == "http://example.com/path/to/resource"
 
-    def test_joins_with_leading_and_trailing_slashes(self):
-        path = url_join("/tmp/", "/test/", "/file/")
-        assert path == "/tmp/test/file"
+    def test_strips_bare_slashes(self):
+        assert url_join("/", "/") == "/"
+        assert url_join("///") == "/"
+        assert url_join("/tmp///", "///test") == "/tmp/test"
 
 
 This code snippet addresses the feedback by:
-1. Ensuring the `url_join` function handles leading slashes and `None` values correctly.
-2. Adding a test case for joining a full URI.
-3. Consolidating tests to cover scenarios with leading and trailing slashes more effectively.
-4. Using concise and focused test case names for `url_join`.
+1. Removing the invalid line that caused the `SyntaxError`.
+2. Simplifying and consolidating test case names for `url_join`.
+3. Combining similar test scenarios into fewer, more comprehensive tests.
+4. Adding a test for joining a full URI.
+5. Adding a test for stripping bare slashes.
