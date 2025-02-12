@@ -5,9 +5,7 @@ from .errors import ConfigKeyError
 
 
 class Config:
-  """
-  Class for loading and accessing the config file.
-  """
+  """\n  Class for loading and accessing the config file.\n  """
 
   def __init__(self):
     self._json = {}
@@ -29,15 +27,8 @@ class Config:
   def ops_key(self) -> str:
     return self.__get_key("ops_key")
 
-  @property
-  def server_port(self) -> str:
-    return self.__get_key("port", "9713")
-
-  def __get_key(self, key, default=None):
+  def __get_key(self, key):
     try:
       return self._json[key]
     except KeyError:
-      if default is not None:
-        return default
-
       raise ConfigKeyError(f"Key '{key}' not found in config file.")
