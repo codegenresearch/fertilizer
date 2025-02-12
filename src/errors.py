@@ -22,37 +22,61 @@ def handle_error(
     sys.exit(1)
 
 
+def make_request(session, url, params, timeout, max_retries, retry_wait_time):
+    current_retries = 1
+
+    while current_retries <= max_retries:
+        try:
+            response = session.get(url, params=params, timeout=timeout)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.Timeout as e:
+            err = "Request timed out", e
+        except requests.exceptions.ConnectionError as e:
+            err = "Unable to connect", e
+        except requests.exceptions.RequestException as e:
+            err = "Request failed", f"{type(e).__name__}: {e}"
+        except json.JSONDecodeError as e:
+            err = "JSON decoding of response failed", e
+
+        handle_error(
+            description=err[0],
+            exception_details=err[1],
+            wait_time=retry_wait_time(current_retries),
+            extra_description=f" (attempt {current_retries}/{max_retries})",
+        )
+        current_retries += 1
+
+    handle_error(description="Maximum number of retries reached", should_exit=True)
+
+
 class AuthenticationError(Exception):
-  pass
+    pass
 
 
 class TorrentDecodingError(Exception):
-  pass
+    pass
 
 
 class UnknownTrackerError(Exception):
-  pass
+    pass
 
 
 class TorrentNotFoundError(Exception):
-  pass
+    pass
 
 
 class TorrentAlreadyExistsError(Exception):
-  pass
+    pass
 
 
 class ConfigKeyError(Exception):
-  pass
+    pass
 
 
 class TorrentClientError(Exception):
-  pass
-
-
-class TorrentClientAuthenticationError(Exception):
-  pass
+    pass
 
 
 class TorrentInjectionError(Exception):
-  pass
+    pass
