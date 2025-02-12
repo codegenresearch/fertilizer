@@ -19,11 +19,19 @@ class Tracker:
   def reciprocal_tracker():
     raise NotImplementedError
 
+  @staticmethod
+  def handle_alternate_sources():
+    raise NotImplementedError
+
+  @staticmethod
+  def manage_blank_sources():
+    raise NotImplementedError
+
 
 class OpsTracker(Tracker):
   @staticmethod
   def source_flags_for_search():
-    return [b"OPS", b"APL"]
+    return [b"OPS"]
 
   @staticmethod
   def source_flags_for_creation():
@@ -40,6 +48,18 @@ class OpsTracker(Tracker):
   @staticmethod
   def reciprocal_tracker():
     return RedTracker
+
+  @staticmethod
+  def handle_alternate_sources(torrent):
+    # Example implementation: handle alternate sources for OPS
+    pass
+
+  @staticmethod
+  def manage_blank_sources(output_path):
+    # Example implementation: manage blank sources in output file paths for OPS
+    if output_path.endswith('/'):
+        return output_path + 'default_filename'
+    return output_path
 
 
 class RedTracker(Tracker):
@@ -62,3 +82,15 @@ class RedTracker(Tracker):
   @staticmethod
   def reciprocal_tracker():
     return OpsTracker
+
+  @staticmethod
+  def handle_alternate_sources(torrent):
+    # Example implementation: handle alternate sources for RED
+    pass
+
+  @staticmethod
+  def manage_blank_sources(output_path):
+    # Example implementation: manage blank sources in output file paths for RED
+    if output_path.endswith('/'):
+        return output_path + 'default_filename'
+    return output_path
