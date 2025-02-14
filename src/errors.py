@@ -4,6 +4,10 @@ from time import sleep
 from colorama import Fore
 
 
+class CustomError(Exception):
+    pass
+
+
 def handle_error(
   description: str,
   exception_details: (str | None) = None,
@@ -11,48 +15,44 @@ def handle_error(
   extra_description: str = "",
   should_exit: bool = False,
 ) -> None:
-  action = "Exiting" if should_exit else "Retrying"
-  action += f" in {wait_time} seconds..." if wait_time else "..."
-  exception_message = f"\n{Fore.LIGHTBLACK_EX}{exception_details}" if exception_details is not None else ""
+    action = "Exiting" if should_exit else "Retrying"
+    action += f" in {wait_time} seconds..." if wait_time else "..."
+    exception_message = f"\n{Fore.LIGHTBLACK_EX}{exception_details}" if exception_details is not None else ""
 
-  print(f"{Fore.RED}Error: {description}{extra_description}. {action}{exception_message}{Fore.RESET}")
-  sleep(wait_time)
+    print(f"{Fore.RED}Error: {description}{extra_description}. {action}{exception_message}{Fore.RESET}")
+    sleep(wait_time)
 
-  if should_exit:
-    sys.exit(1)
-
-
-class AuthenticationError(Exception):
-  pass
+    if should_exit:
+        sys.exit(1)
 
 
-class TorrentDecodingError(Exception):
-  pass
+class AuthenticationError(CustomError):
+    pass
 
 
-class UnknownTrackerError(Exception):
-  pass
+class TorrentDecodingError(CustomError):
+    pass
 
 
-class TorrentNotFoundError(Exception):
-  pass
+class UnknownTrackerError(CustomError):
+    pass
 
 
-class TorrentAlreadyExistsError(Exception):
-  pass
+class TorrentNotFoundError(CustomError):
+    pass
 
 
-class ConfigKeyError(Exception):
-  pass
+class TorrentAlreadyExistsError(CustomError):
+    pass
 
 
-class TorrentClientError(Exception):
-  pass
+class ConfigKeyError(CustomError):
+    pass
 
 
-class TorrentClientAuthenticationError(Exception):
-  pass
+class TorrentClientError(CustomError):
+    pass
 
 
-class TorrentInjectionError(Exception):
-  pass
+class TorrentInjectionError(CustomError):
+    pass
