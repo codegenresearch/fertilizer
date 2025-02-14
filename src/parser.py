@@ -3,9 +3,8 @@ import copy
 import bencoder
 from hashlib import sha1
 
-from .utils import flatten
+from .utils import flatten, copy_and_mkdir
 from .trackers import RedTracker, OpsTracker
-from .errors import TorrentDecodingError
 
 
 def is_valid_infohash(infohash: str) -> bool:
@@ -57,35 +56,38 @@ def get_origin_tracker(torrent_data: dict) -> RedTracker | OpsTracker | None:
 
 
 def calculate_infohash(torrent_data: dict) -> str:
-  try:
-    return sha1(bencoder.encode(torrent_data[b"info"])).hexdigest().upper()
-  except KeyError:
-    raise TorrentDecodingError("Torrent data does not contain 'info' key")
+  if b"info" not in torrent_data:
+    raise ValueError("Torrent data does not contain 'info' key")
+  return sha1(bencoder.encode(torrent_data[b"info"])).hexdigest().upper()
 
 
 def recalculate_hash_for_new_source(torrent_data: dict, new_source: (bytes | str)) -> str:
   torrent_data = copy.deepcopy(torrent_data)
   torrent_data[b"info"][b"source"] = new_source
-
   return calculate_infohash(torrent_data)
 
 
-def get_bencoded_data(filename: str) -> dict:
+def get_bencoded_data(filename: str) -> dict | None:
   try:
     with open(filename, "rb") as f:
       data = bencoder.decode(f.read())
-
     return data
-  except Exception:
+  except Exception as e:
+    print(f"Error decoding torrent file: {e}")
     return None
 
 
 def save_bencoded_data(filepath: str, torrent_data: dict) -> str:
   parent_dir = os.path.dirname(filepath)
   if parent_dir:
-    os.makedirs(parent_dir, exist_ok=True)
+    copy_and_mkdir(parent_dir)
 
   with open(filepath, "wb") as f:
     f.write(bencoder.encode(torrent_data))
 
   return filepath
+
+
+def copy_and_mkdir(path: str):
+  if not os.path.exists(path):
+    os.makedirs(path)
